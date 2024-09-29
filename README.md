@@ -20,9 +20,9 @@ Our proposed FSVD methodology is applied to tasks including optimal dimension re
 - [Identification of substructures in longitudinal data through functional clustering](https://cran.r-project.org/web/packages/fdapace/)
 - [Clustering for sparsely sampled functional data](https://www.tandfonline.com/doi/abs/10.1198/016214503000189)
 - [Factor models for high-dimensional time series](https://cran.r-project.org/web/packages/HDTSA/index.html)
-- Singular value decomposition (SVD)
 - [Matrix completion](https://cran.r-project.org/web/packages/filling/index.html)
 - [Predictive Methods to Missing Data Imputation](https://www.jmlr.org/papers/v18/17-073.html)
+- Singular value decomposition (SVD)
 - Smoothing spline
 
 ### Reproducibility
