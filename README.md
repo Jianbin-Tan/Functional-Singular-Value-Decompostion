@@ -1,21 +1,22 @@
 # Functional Singular Value Decomposition (FSVD)
 
-This README accompanies the paper "Functional Singular Value Decomposition" by Jianbin Tan and Anru Zhang, detailing the associated data and code.
+This repository contains the data and code scripts for the paper "Functional Singular Value Decomposition" by Jianbin Tan and Anru Zhang.
 
 ## 1. Data
-### Abstract
 
-This repository contains both simulated and actual datasets utilized in our study. The dynamic COVID-19 dataset is publicly available on the [COVID-19 Data Repository by CSSE at Johns Hopkins University](https://github.com/CSSEGISandData/COVID-19). The longitudinal electronic health records are sourced from the [MIMIC-IV Database](https://physionet.org/content/mimiciv/3.0/).
-
-### Availability
-All datasets necessary to replicate our findings are provided.
+This repository contains both simulated and real datasets utilized in our study. All datasets necessary to replicate our findings are provided. Specifically: 
+- The dynamic COVID-19 dataset is publicly available at the [COVID-19 Data Repository by CSSE at Johns Hopkins University](https://github.com/CSSEGISandData/COVID-19). 
+- The longitudinal electronic health records are sourced from the [MIMIC-IV Database](https://physionet.org/content/mimiciv/3.0/).
 
 ### Data Dictionary
-Included within the "Data" directory are the raw data files for COVID-19 dynamic trajectories and longitudinal electronic health records, along with additional requisite information.
+The "Data" directory contains the raw data files, including:
+- COVID-19 dynamic trajectories
+- Longitudinal EHR data
+Additional information and documentation are also provided for these datasets.
 
 ## 2. Code
-### Abstract
-Our proposed FSVD methodology is applied to tasks including optimal dimension reduction, clustering, factor modeling, and functional completion. We benchmark our method against several prominent techniques:
+### Overview
+The code in this repository demonstrates the application of our proposed FSVD methodology to various tasks, such as optimal dimension reduction, clustering, factor modeling, and functional completion. We benchmark our method against several prominent approaches:
 - [Functional principal component analysis (FPCA)](https://cran.r-project.org/web/packages/fdapace/)
 - [Identification of substructures in longitudinal data through functional clustering](https://cran.r-project.org/web/packages/fdapace/)
 - [Clustering for sparsely sampled functional data](https://www.tandfonline.com/doi/abs/10.1198/016214503000189)
@@ -26,6 +27,6 @@ Our proposed FSVD methodology is applied to tasks including optimal dimension re
 - Smoothing spline
 
 ### Reproducibility
-- The results in Section 5 are reproducible by running "Simulation_result.R".
-- Analysis of the COVID-19 dynamic data (Section 6.1) is performed using "Data_analysis_COVID19.R".
-- Analysis of longitudinal electronic health records (Section 6.2) is conducted using "Data_analysis_EHR.R".
+- **Simulation Results**: The results presented in Section 5 can be reproduced by running the script `Simulation_result.R`.
+- **COVID-19 Dynamic Data Analysis**: The analysis in Section 6.1 can be performed using `Data_analysis_COVID19.R`.
+- **Longitudinal EHR Analysis**: The analysis in Section 6.2 can be conducted using `Data_analysis_EHR.R`.
