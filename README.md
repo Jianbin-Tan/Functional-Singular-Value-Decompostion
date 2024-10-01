@@ -1,6 +1,6 @@
 # Functional Singular Value Decomposition (FSVD)
 
-This repository contains the data and code scripts for the paper "Functional Singular Value Decomposition" by Jianbin Tan and Anru Zhang.
+This repository contains the data and code scripts for the paper "Functional Singular Value Decomposition" by Jianbin Tan, Pixu Shi, and Anru R. Zhang.
 
 ## 1. Data
 
