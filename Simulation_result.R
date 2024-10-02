@@ -9,6 +9,7 @@ source("Function.R")
 ###############################################################################
 # Setting 1
 ## Intrinsic basis functions' case
+### Heterogeneous cases
 basis_num <- 3 # Number of basis functions used
 rat <- 0.05 # Noise level
 
@@ -68,6 +69,66 @@ lapply(1:3, function(i){
   return(a)
 })
 
+### i.i.d. cases
+basis_num <- 3 # Number of basis functions used
+rat <- 0.05 # Noise level
+
+sample_mark <- c(50, 100, 150) # Sample size
+point_mark <- c(6, 8, 10) # Mean number of observed time points
+for(n in sample_mark){
+  for(obs_point in point_mark){
+    source("Simulation_fun_iid.R")
+  }
+}
+
+## Estimation errors of basis functions
+bas_error <- lapply(1:3, function(i){
+  lapply(1:3, function(k){
+    NULL
+  })
+})
+
+for(i in 1:3){
+  for(k in 1:3){
+    n <- sample_mark[i]
+    obs_point <- point_mark[k]
+    load(paste0("Result/Result_iid_", n, "_", obs_point, ".rda"))
+    bas_error[[i]][[k]] <- sapply(1:basis_num, function(k) basis_error(Result, k))
+  }
+}
+
+lapply(1:3, function(i){
+  a <- cbind(bas_error[[i]][[1]], bas_error[[i]][[2]], bas_error[[i]][[3]])
+  rownames(a) <- c("FPCA(0)", "FPCA", "FSVD")
+  a <- a[c(2,1,3),]
+  a <- xtable(a)
+  return(a)
+})
+
+## Estimation error of functional completion
+com_error <- lapply(1:3, function(i){
+  lapply(1:3, function(k){
+    NULL
+  })
+})
+
+for(i in 1:3){
+  for(k in 1:3){
+    n <- sample_mark[i]
+    obs_point <- point_mark[k]
+    load(paste0("Result/Result_iid_", n, "_", obs_point, ".rda"))
+    com_error[[i]][[k]] <- Completion_error(Result)
+  }
+}
+
+lapply(1:3, function(i){
+  a <- cbind(com_error[[i]][[1]], com_error[[i]][[2]], com_error[[i]][[3]])
+  rownames(a) <- c("Smooth spline", "FPCA(0)", "FPCA", "FSVD")
+  a <- a[c(3,2,1,4),]
+  a <- xtable(a)
+  return(a)
+})
+
 ################################################################################
 # Setting 2
 ## Functional clustering case
@@ -96,7 +157,7 @@ for(i in 1:3){
                                   Method = rep(c(rep("Smoothing-clustering", 100), rep("FPCA-clustering", 100),
                                                  rep("FSVD-clustering", 100), rep("FSVD-EM-clustering", 100)), 1),
                                   n = rep(n, 400),
-                                  p = rep(paste0("[", obs_point - 2, ",", obs_point + 2, "]"), 400)))
+                                  p = rep(paste0("{", obs_point - 2, ",...,", obs_point + 2, "}"), 400)))
   }
 }
 
@@ -112,6 +173,7 @@ ggplot(clu_Error) +
   labs(x = "Method", y = "ARI",
        title = "",
        colour = "", fill = "", linetype = "") +
+  theme_bw() +
   theme(panel.grid.minor = element_blank(),
         legend.position = "top",
         panel.border = element_blank(),
@@ -125,8 +187,8 @@ ggplot(clu_Error) +
 
 ggsave(paste0("Figure/", "sim_clu", ".pdf"), width = 6.5, height = 5.5, dpi = 300)
 
-################################################################################
-# Intrinsic basis vectors' case
+###############################################################################
+# Setting 3
 ## Model setting
 basis_num <- 3
 rat <- 0.05
@@ -149,12 +211,13 @@ for(i in 1:3){
     p <- data.frame(error = unlist(load_error(Result)),
                     Method = c(" FAM", "  SVD", "FSVD"),
                     n = rep(n, 3),
-                    J = rep(obs_point, 3))
+                    J = rep(paste0("{", obs_point - 2, ",...,", obs_point + 2, "}"), 3))
     dat_plot <- rbind(dat_plot, p)
   }
 }
 
 colnames(dat_plot) <- c("NMSE", "Method", "n", "J")
+dat_plot$J <- factor(dat_plot$J, level = c("{4,...,8}", "{8,...,12}", "{12,...,16}"))
 
 ggplot(dat_plot) + 
   geom_bar(aes(x = Method, y = NMSE, fill = Method),
@@ -165,9 +228,14 @@ ggplot(dat_plot) +
   ) +
   facet_wrap(n ~  J, nrow = 3) +
   scale_fill_manual(values = c("#F0A780", "#96B6D8", "#e34a33")) +
-  labs(x = "Method", y = "NMSE",
+  labs(x = "Method", y = "NMSE (%)",
        title = "",
        colour = "", fill = "", linetype = "") +
+  # scale_y_continuous(breaks = seq(0, 1, length.out = 5), labels = c("0%", "25%", "50%",
+  #                                                                     "75%", "100%")) +
+  # scale_x_discrete(breaks = c("0", "0.15", "0.3"), labels = c("0%", "15%", "30%")) +
+  theme_bw() +
+  # ggthemes::theme_tufte() +
   theme(text=element_text(size=15),
         panel.grid.minor = element_blank(),
         legend.position = "top",

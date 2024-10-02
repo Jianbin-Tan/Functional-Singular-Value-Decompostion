@@ -20,6 +20,7 @@ library(filling)
 ################################################################################
 # Data generation
 ## Intrinsic basis functions' case
+### Heterogeneous cases
 data_gen_fun <- function(basis_num, n, obs_poi, rat, norm){
   
   sigma <- 2 * exp((basis_num):1 / 2)
@@ -60,6 +61,64 @@ data_gen_fun <- function(basis_num, n, obs_poi, rat, norm){
     time <- sort(sample(time_grid, time_num))
     time_mark <- sapply(1:time_num, function(k) which.min(abs(time_grid - time[k])))
     obs_point <- fda_full[time_mark,i] + rnorm(time_num, 0, obs_sig[i])
+    return(list(time = time, obs = obs_point))
+  })
+  
+  return(list(obs_dat = obs_dat,
+              fda_full = fda_full,
+              basis = basis,
+              a = a,
+              basis_num = basis_num,
+              n = n,
+              obs_point = obs_poi,
+              rat = rat,
+              time_grid = time_grid,
+              obs_sig = obs_sig,
+              norm = norm
+  ))
+}
+
+### i.i.d. cases
+data_gen_fun_iid <- function(basis_num, n, obs_poi, rat, norm){
+  
+  sigma <- 2 * exp((basis_num):1 / 2)
+  time_grid <- seq(0, 1, length.out = 101)
+  basis <- fourier(time_grid, nbasis = basis_num + 3)[,2:(basis_num + 1)]
+  
+  a <- t(sapply(1:n, function(i){
+    sapply(1:basis_num, function(k){
+      0
+    })
+  }))
+  
+  # a[,1] <- a[,1] / sqrt(sum(a[,1] ^ 2))
+  # for(k in 2:basis_num){
+  #   a[,k] <- a[,k] - a[,1:(k-1)] %*% (t(a[,1:(k-1)]) %*% a[,k]) 
+  #   a[,k] <- a[,k] / sqrt(sum(a[,k] ^ 2))
+  # }
+  
+  a <- t(sapply(1:n, function(i){
+    sapply(1:basis_num, function(k){
+      rnorm(1, a[i,k],  sqrt(1/n))
+    })
+  }))
+  
+  a <- t(t(a) * sigma) 
+  
+  fda_full <- basis %*% t(a)  
+  
+  if(is.numeric(rat) == T){
+    obs_sig <- sqrt(norm * rat)
+  }else{
+    norm <- (colSums(fda_full ^ 2)) * 0.01
+    obs_sig <- rep(1, n)
+  }
+  
+  obs_dat <- lapply(1:n, function(i){
+    time_num <- sample((obs_poi - 2):(obs_poi + 2), 1)
+    time <- sort(sample(time_grid, time_num))
+    time_mark <- sapply(1:time_num, function(k) which.min(abs(time_grid - time[k])))
+    obs_point <- fda_full[time_mark,i] + rnorm(time_num, 0, mean(obs_sig))
     return(list(time = time, obs = obs_point))
   })
   
@@ -667,9 +726,6 @@ sim_func <- function(basis_num, n, obs_point, rat, norm, seed){
   Value <- c(sapply(1:n, function(i){dat_col$fda_full[,i]}))
   m <- c(sapply(1:n, function(i){rep(i, 30)}))
   
-  ggplot() +
-    geom_path(aes(x = t, y = Value, group = m))
-  
   ## Smoothing spline
   fit_smo <- lapply(1:n, function(i){
     fit <- smooth.spline(x = Lt[[i]], y = Ly[[i]], cv = F)
@@ -694,6 +750,51 @@ sim_func <- function(basis_num, n, obs_point, rat, norm, seed){
                                         methodSelectK = "AIC",
                                         maxK = 2 * basis_num
   ))
+  
+  ## FSVD
+  fit_FSVD <- FSVD(Ly, Lt, R_max = 2 * basis_num, R_pre = F, num_sel = "FD")
+  
+  return(list(dat_col = dat_col,
+              fit_smo = fit_smo,
+              fit_FPCA0 = fit_FPCA0,
+              fit_FPCA = fit_FPCA,
+              fit_FSVD = fit_FSVD))
+}
+
+sim_func_iid <- function(basis_num, n, obs_point, rat, norm, seed){
+  
+  set.seed(seed)
+  dat_col <- data_gen_fun_iid(basis_num, n, obs_point, rat, norm)
+  dat <- dat_col$obs_dat
+  
+  Ly <- lapply(1:n, function(i) dat[[i]]$obs)
+  Lt <- lapply(1:n, function(i) dat[[i]]$time)
+  time_grid <- seq(0, 1, 0.01)
+  
+  # Plot
+  t <- c(sapply(1:n, function(i){dat_col$time_grid}))
+  Value <- c(sapply(1:n, function(i){dat_col$fda_full[,i]}))
+  m <- c(sapply(1:n, function(i){rep(i, 30)}))
+  
+  ## Smoothing spline
+  fit_smo <- lapply(1:n, function(i){
+    fit <- smooth.spline(x = Lt[[i]], y = Ly[[i]], cv = F)
+    return(predict(fit, time_grid)$y)
+  })
+  
+  ## FPCA-zero mean
+  fit_FPCA0 <- FPCA(Ly, Lt, optns = list(error = T, nRegGrid = 101, 
+                                         methodMuCovEst = "smooth",
+                                         methodBwCov = "GCV",
+                                         methodSelectK = "AIC",
+                                         maxK = 2 * basis_num,
+                                         methodXi = "CE",
+                                         dataType = 'Sparse'
+                                         # userMu = list(t = seq(0, 1, 0.01), mu = rep(0 , 101))
+  ))
+  
+  ## FPCA
+  fit_FPCA <- fit_FPCA0
   
   ## FSVD
   fit_FSVD <- FSVD(Ly, Lt, R_max = 2 * basis_num, R_pre = F, num_sel = "FD")
@@ -824,9 +925,6 @@ sim_func_fac <- function(basis_num, n, obs_point, rat, seed){
   t <- c(sapply(1:n, function(i){dat_col$time_grid}))
   Value <- c(sapply(1:n, function(i){dat_col$fda_full[,i]}))
   m <- c(sapply(1:n, function(i){rep(i, 101)}))
-  
-  ggplot() +
-    geom_path(aes(x = t, y = Value, group = m))
   
   ## Imputing missing data
   time_grid_mat <- seq(0, 1, length.out = obs_point)
