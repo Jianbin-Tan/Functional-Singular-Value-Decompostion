@@ -16,10 +16,12 @@ Additional information and documentation are also provided for these datasets.
 
 ## 2. Code
 ### Overview
-The code in this repository demonstrates the application of our proposed FSVD methodology to various tasks, such as optimal dimension reduction, clustering, factor modeling, and functional completion. We benchmark our method against several prominent approaches:
+The code in this repository demonstrates the application of our proposed FSVD methodology to various tasks, such as optimal dimension reduction, functional clustering, functional regression, factor model, and functional completion. We benchmark our method against several prominent approaches:
 - [Functional principal component analysis (FPCA)](https://cran.r-project.org/web/packages/fdapace/)
 - [Identification of substructures in longitudinal data through functional clustering](https://cran.r-project.org/web/packages/fdapace/)
 - [Clustering for sparsely sampled functional data](https://www.tandfonline.com/doi/abs/10.1198/016214503000189)
+- [Functional linear regression analysis for longitudinal data](https://projecteuclid.org/journals/annals-of-statistics/volume-33/issue-6/Functional-linear-regression-analysis-for-longitudinal-data/10.1214/009053605000000660.full)
+- [Penalized functional regression](https://www.tandfonline.com/doi/abs/10.1198/jcgs.2010.10007?casa_token=2eQCx5RtRgYAAAAA:Wrh0wz1Qs2MemK1Q4ysRWUQ1uiop5I4lUOuLnZSlbJQZF4Fqc72Nggw3Cb-lSvxmjUE-MghFS6cHYA)
 - [Factor models for high-dimensional time series](https://cran.r-project.org/web/packages/HDTSA/index.html)
 - [Matrix completion](https://cran.r-project.org/web/packages/filling/index.html)
 - [Predictive methods to missing data imputation](https://www.jmlr.org/papers/v18/17-073.html)
