@@ -357,12 +357,7 @@ ppp <- arrangeGrob(p_fit, p_fit_2, nrow = 1)
 
 ggsave(paste0("Figure/", "fit_dat_tol", ".pdf"), ppp, width = 15, height = 9, dpi = 300)
 
-## MSE
-mean((dat_plot_mat$Value[is.finite(dat_plot_mat$Value) == T] - dat_plot_mat$Estimation[is.finite(dat_plot_mat$Value) == T]) ^ 2) 
-mean((dat_plot_smo$Value[is.finite(dat_plot_fsvd$Value) == T] - dat_plot_smo$Estimation[is.finite(dat_plot_smo$Value) == T]) ^ 2) 
-mean((dat_plot_knn$Value[is.finite(dat_plot_knn$Value) == T] - dat_plot_knn$Estimation[is.finite(dat_plot_knn$Value) == T]) ^ 2) 
-mean((dat_plot_fsvd$Value[is.finite(dat_plot_fsvd$Value) == T] - dat_plot_fsvd$Estimation[is.finite(dat_plot_fsvd$Value) == T]) ^ 2) 
-
+################################################################################
 ## Factor models
 fit_FSVD$R <- 3
 R <- fit_FSVD$R
@@ -381,21 +376,6 @@ dat_plot_fac <- data.frame(
 
 dat_plot_fac$Component <- as.factor(dat_plot_fac$Component)
 
-p <- ggplot(dat_plot_fac) + 
-  geom_line(aes(x = Time, y = Value), color = "#3182bd", size = 0.8) + 
-  facet_wrap(.~Component, nrow = 1) +
-  labs(x = "Time (min)", y = "Value",
-       title = "",
-       colour = "", fill = "", linetype = "") + 
-  theme_bw(base_family = "Times") +
-  theme(panel.grid.minor = element_blank(),
-        legend.position = "top",
-        panel.border = element_blank(),
-        # text = element_text(family = "STHeiti"),
-        plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 0))  
-p
-
 # ggsave(paste0("code/Figure/", "fit_fac", ".pdf"), width = 10, height = 3, dpi = 300)
 
 dat_plot_loa <- data.frame(
@@ -406,6 +386,21 @@ dat_plot_loa <- data.frame(
 )
 
 dat_plot_loa$Component <- as.factor(dat_plot_loa$Component)
+
+p <- ggplot(dat_plot_fac) + 
+  geom_line(aes(x = Time, y = Value), color = "#3182bd", size = 0.8) + 
+  facet_wrap(.~Component, nrow = 1) +
+  labs(x = "Time (min)", y = "Value",
+       title = "(B) Factor Series",
+       colour = "", fill = "", linetype = "") + 
+  theme_bw(base_family = "Times") +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "top",
+        panel.border = element_blank(),
+        # text = element_text(family = "STHeiti"),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 0))  
+p
 
 pp <- ggplot(dat_plot_loa) + 
   geom_bar(aes(x = Feature, y = Value, fill = sig), stat = "identity", width = 0.7) + 
@@ -420,21 +415,21 @@ pp <- ggplot(dat_plot_loa) +
         axis.text.x = element_text(angle = 0)) +
   # scale_x_discrete(labels = function(x) str_wrap(x, width = 15)) + 
   scale_fill_manual(values = c("#D6AFB9", "#7E9BB7")) + 
-  labs(x = "", y = "Factor loading",
-       title = "",
+  labs(x = "", y = "Value",
+       title = "(A) Factor Loading",
        colour = "", fill = "", linetype = "") +
   coord_flip() +
   scale_x_discrete(limits = rev(feature_id))
 pp
 
-A <- matrix(c(NA, 1, 1, 1, 1, 1, 
-              NA, 1, 1, 1, 1, 1, 
-              NA, 1, 1, 1, 1, 1, 
-              2, 2, 2, 2, 2, 2,
-              2, 2, 2, 2, 2, 2,
-              2, 2, 2, 2, 2, 2, 
-              2, 2, 2, 2, 2, 2), byrow = T, nrow = 7)
-grid.arrange(p, pp, ncol = 1, layout_matrix = A)
-ppp <- arrangeGrob(p, pp, ncol = 1, layout_matrix = A) 
+# A <- matrix(c(NA, 1, 1, 1, 1, 1, 
+#               NA, 1, 1, 1, 1, 1, 
+#               NA, 1, 1, 1, 1, 1, 
+#               2, 2, 2, 2, 2, 2,
+#               2, 2, 2, 2, 2, 2,
+#               2, 2, 2, 2, 2, 2, 
+#               2, 2, 2, 2, 2, 2), byrow = T, nrow = 7)
+grid.arrange(pp, p, ncol = 2)
+ppp <- arrangeGrob(pp, p, ncol = 2) 
   
-ggsave(paste0("Figure/", "fit_fac_loa", ".pdf"), ppp, width = 8.6, height = 6, dpi = 300)
+ggsave(paste0("Figure/", "fit_fac_loa", ".pdf"), ppp, width = 12, height = 3, dpi = 300)

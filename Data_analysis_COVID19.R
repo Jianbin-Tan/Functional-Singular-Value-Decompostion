@@ -68,7 +68,7 @@ dat_plot <- as.data.frame(dat_plot)
 select_coun <- c("Malaysia", "US", "Thailand", "Luxembourg", "Qatar", "Taiwan*")
 mark <- sapply(1:length(select_coun), function(k) which(region_name == select_coun[k]))
 
-p_1 <- ggplot() + 
+p_1 <- ggplot(data = NULL) + 
   geom_line(data = dat_plot, aes(x = time, y = value, group = Region), color = "gray") +
   geom_line(aes(x = Lt[[mark[1]]] * mean_t[2], y = Ly[[mark[1]]])) +
   geom_point(aes(x = Lt[[mark[1]]] * mean_t[2], y = Ly[[mark[1]]], color = "Observed case count"), size = 0.5) +
@@ -82,8 +82,6 @@ p_1 <- ggplot() +
   geom_line(aes(x = Lt[[mark[4]]] * mean_t[2], y = Ly[[mark[4]]])) +
   geom_point(aes(x = Lt[[mark[4]]] * mean_t[2], y = Ly[[mark[4]]], color = "Observed case count"), size = 0.5) +
   geom_text(aes(x = 46, y = 4, label = "Luxembourg")) +
-  # geom_line(aes(x = Lt[[mark[5]]] * mean_t[2], y = Ly[[mark[5]]])) +
-  # geom_text(aes(x = 13, y = 2.6, label = "Qatar")) +
   geom_line(aes(x = Lt[[mark[6]]] * mean_t[2], y = Ly[[mark[6]]])) +
   geom_point(aes(x = Lt[[mark[6]]] * mean_t[2], y = Ly[[mark[6]]], color = "Observed case count"), size = 0.5) +
   geom_text(aes(x = 45, y = 2.2, label = "Taiwan")) +
@@ -102,6 +100,7 @@ p_1 <- ggplot() +
   ylim(c(-2, 5))
 p_1
 
+################################################################################
 # CV for functional completion
 time_grid <- seq(0, 1, length.out = 101)
 
@@ -159,8 +158,10 @@ CV_error <- sapply(1:cv, function(cv_num){
 
 error <- apply(CV_error, c(2), mean)
 
+### Reduced percentage
 (error[1] - error[2]) / error[1]
 
+################################################################################
 ## FSVD implementation
 fit_FSVD <- FSVD(Ly, Lt, R_max = 4, R_pre = NULL, num_sel = "FD")
 
@@ -253,6 +254,7 @@ p <- gridExtra::arrangeGrob(p_1, p_2, p_3, ncol = 3, layout_matrix = A)
 
 ggsave(paste0("Figure/", "curve_analysis", ".pdf"), p, width = 11, height = 3.5, dpi = 300)
 
+################################################################################
 # Functional clustering via FSVD
 fit_clu_FSVD <- FClust_fsvd(Ly, Lt, R_max = 4, R_pre = NULL, Clu_num = F, abs = 0.001)
 
@@ -274,7 +276,7 @@ dat_plot <- data.frame(
 
 dat_plot$label <- factor(dat_plot$label)
 
-p_1 <- ggplot(dat_plot) + 
+p_4 <- ggplot(dat_plot) + 
   geom_point(aes(x = X, y = Y, color = label), size = 3) + 
   ggrepel::geom_text_repel(aes(x = X, y = Y, label = Country), size = 3,
                            max.overlaps = getOption("ggrepel.max.overlaps", default = 5)) + 
@@ -291,7 +293,7 @@ p_1 <- ggplot(dat_plot) +
         plot.title = element_text(hjust = 0.5),
         axis.text.x = element_text(angle = 0)) + 
   scale_color_manual(values = c('#fc8d62', 'blue')) 
-p_1
+p_4
 # ggsave(paste0("code/Figure/", "Map_clu", ".pdf"), width = 10, height = 10, dpi = 300)
 
 dat_plot <- data.frame(
@@ -314,14 +316,14 @@ dat_plot$label <- factor(dat_plot$label)
 library(maps)
 world <- map_data("world")
 
-p_2 <- ggplot() + 
+p_4 <- ggplot(data = NULL) + 
   geom_polygon(data = world, aes(x = long, y = lat, group = group), fill = "gray") + 
   # coord_fixed(1.3) +
   geom_point(data = dat_plot, aes(x = X, y = Y, color = label), size = 1.3) + 
   ggrepel::geom_text_repel(data = dat_plot, aes(x = X, y = Y, label = Country),
                            max.overlaps = getOption("ggrepel.max.overlaps", default = 10), size = 2.6) +
   labs(x = "", y = "",
-       title = "(A)",
+       title = "(D)",
        colour = "", fill = "", linetype = "") +
   theme_bw(base_family = "Times") +
   # scale_x_continuous(labels = c(0, 20, 40, 60)) +
@@ -340,7 +342,7 @@ p_2 <- ggplot() +
         axis.text.x = element_blank(),
         axis.text.y = element_blank()) + 
   scale_color_manual(values = c('#fc8d62', 'blue')) 
-p_2
+p_4
 
 ggsave(paste0("Figure/", "Map_clu", ".pdf"), p_2, width = 7, height = 5, dpi = 300)
 
@@ -355,25 +357,34 @@ dat_plot <- data.frame(time = rep(time_grid, 2) * 67,
                        label = c(rep("Cluster 2", length(time_grid)), rep("Cluster 1", length(time_grid)))
 )
 
-p_3 <- ggplot(dat_plot) + 
+p_5 <- ggplot(dat_plot) + 
   geom_line(aes(x = time, y = val, color = label), size = 1) +
   labs(x = "Day since 20+ cases", y = "Value of functions",
-       title = "(B)",
+       title = "(E)",
        colour = "", fill = "", linetype = "") +
   theme_bw(base_family = "Times") +
   scale_x_continuous(breaks = c(0, 20, 40, 60)) +
   theme(panel.grid.minor = element_blank(),
-        legend.position = "right",
+        legend.position = "top",
         panel.border = element_blank(),
         # text = element_text(family = "STHeiti"),
         plot.title = element_text(hjust = 0.5),
         axis.text.x = element_text(angle = 0)) +
   scale_color_manual(values = c('blue', '#fc8d62')) 
-p_3
+p_5
 
-gridExtra::grid.arrange(p_2, p_3, ncol = 2, layout_matrix = matrix(c(1, 1, 1, 1, 2, 2, 2, 2, 2), nrow = 1))
-p <- gridExtra::grid.arrange(p_2, p_3, ncol = 2, layout_matrix = matrix(c(1, 1, 1, 1, 1, 2, 2, 2, 2, 2), nrow = 1))
+## Combine figures
+A <- rbind(matrix(c(1, 2, 3,
+              1, 2, 3,
+              1, 2, 3,
+              1, 2, 3,
+              1, 2, 3,
+              1, 2, 3
+), byrow = T, nrow = 6), c(4 ,4 ,5), c(4 ,4 ,5), c(4 ,4 ,5), c(4 ,4 ,5), c(4 ,4 ,5), c(4 ,4 ,5))
 
-ggsave(paste0("Figure/", "clu_map_mean", ".pdf"), p, width = 10, height = 3.5, dpi = 300)
+gridExtra::grid.arrange(p_1, p_2, p_3, p_4, p_5, ncol = 3, layout_matrix = A)
+p <- gridExtra::grid.arrange(p_1, p_2, p_3, p_4, p_5, ncol = 3, layout_matrix = A)
+
+ggsave(paste0("Figure/", "curve_analysis", ".pdf"), p, width = 10, height = 7, dpi = 300)
 
 

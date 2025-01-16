@@ -52,12 +52,20 @@ com_error <- lapply(1:3, function(i){
   })
 })
 
+com_error_tab <- data.frame()
 for(i in 1:3){
   for(k in 1:3){
     n <- sample_mark[i]
     obs_point <- point_mark[k]
     load(paste0("Result/Result_", n, "_", obs_point, ".rda"))
     com_error[[i]][[k]] <- Completion_error(Result)
+    com_error_tab <- rbind(com_error_tab,
+                           data.frame(n = rep(n, 3),
+                                      p = rep(paste0("{", obs_point - 2, ",...,", obs_point + 2, "}"), 3),
+                                      error = unlist(com_error[[i]][[k]])[c(1,3,4)],
+                                      method = c("Smoothing spline", "FPCA", "FSVD"),
+                                      case = rep("Heterogeneous", 3)                
+                           ))
   }
 }
 
@@ -118,6 +126,13 @@ for(i in 1:3){
     obs_point <- point_mark[k]
     load(paste0("Result/Result_iid_", n, "_", obs_point, ".rda"))
     com_error[[i]][[k]] <- Completion_error(Result)
+    com_error_tab <- rbind(com_error_tab,
+                           data.frame(n = rep(n, 3),
+                                      p = rep(paste0("{", obs_point - 2, ",...,", obs_point + 2, "}"), 3),
+                                      error = unlist(com_error[[i]][[k]])[c(1,3,4)],
+                                      method = c("Smoothing spline", "FPCA", "FSVD"),
+                                      case = rep("Homogeneous", 3)                
+                           ))
   }
 }
 
@@ -128,6 +143,27 @@ lapply(1:3, function(i){
   a <- xtable(a)
   return(a)
 })
+
+com_error_tab$method <- factor(com_error_tab$method, levels = c("Smoothing spline", "FPCA", "FSVD"))
+com_error_tab$p <- factor(com_error_tab$p, level = c("{4,...,8}", "{6,...,10}", "{8,...,12}"))
+plot_FC <- ggplot(com_error_tab) + 
+  geom_bar(aes(x = case, y = error, group = method, fill = method), stat = "identity", position = "dodge") +
+  facet_wrap(n ~ p, nrow = 3, scales = "free_y") +
+  scale_fill_manual(values = c("#2c7fb8", "#fdae61", "#e34a33")) +
+  labs(x = "", y = "NMSE (%)",
+       title = "(A) Functional Completion",
+       colour = "", fill = "", linetype = "") +
+  # scale_y_continuous(limits = c(-5, 5)) +
+  # scale_y_log10() +
+  theme_bw() +
+  # ggthemes::theme_tufte() +
+  theme(text=element_text(size=15),
+        panel.grid.minor = element_blank(),
+        legend.position = "top",
+        panel.border = element_blank(),
+        plot.title = element_text(size = 15, hjust = 0.5)) 
+
+# ggsave(paste0("Figure/", "sim_fc", ".pdf"), width = 7, height = 6, dpi = 300)
 
 ################################################################################
 # Setting 2
@@ -166,26 +202,26 @@ clu_Error$Method <- factor(clu_Error$Method, levels = c("Smoothing-clustering",
                                                         "FSVD-clustering",
                                                         "FSVD-EM-clustering"))
 
-ggplot(clu_Error) +
+plot_FCL <- ggplot(clu_Error) +
   geom_boxplot(aes(x = Method, y = value, fill = Method),
                position = "dodge", size = 0.3) +
   facet_wrap(n ~  p) +
   labs(x = "Method", y = "ARI",
-       title = "",
+       title = "(B) Functional Clustering",
        colour = "", fill = "", linetype = "") +
   theme_bw() +
-  theme(panel.grid.minor = element_blank(),
+  theme(text=element_text(size=15),
+        panel.grid.minor = element_blank(),
         legend.position = "top",
-        panel.border = element_blank(),
         axis.text.x=element_blank(),
-        # text = element_text(family = "STHeiti"),
-        plot.title = element_text(hjust = 0.5)) +
+        panel.border = element_blank(),
+        plot.title = element_text(size = 15, hjust = 0.5)) +
   # scale_fill_manual(values = c("blue", "orange")) 
   scale_fill_manual(values = c("#2c7fb8", "#fdae61", "red", "#b30000")) +
   scale_color_manual(values = c("#2c7fb8", "#fdae61", "red", "#b30000"))
 # scale_color_manual(values = c("blue", "orange", "red", "#b30000"))
 
-ggsave(paste0("Figure/", "sim_clu", ".pdf"), width = 6.5, height = 5.5, dpi = 300)
+# ggsave(paste0("Figure/", "sim_clu", ".pdf"), width = 7, height = 6, dpi = 300)
 
 ###############################################################################
 # Setting 3
@@ -219,7 +255,7 @@ for(i in 1:3){
 colnames(dat_plot) <- c("NMSE", "Method", "n", "J")
 dat_plot$J <- factor(dat_plot$J, level = c("{4,...,8}", "{8,...,12}", "{12,...,16}"))
 
-ggplot(dat_plot) + 
+plot_FM <- ggplot(dat_plot) + 
   geom_bar(aes(x = Method, y = NMSE, fill = Method),
            stat = "identity",
            position = "dodge",
@@ -229,7 +265,7 @@ ggplot(dat_plot) +
   facet_wrap(n ~  J, nrow = 3) +
   scale_fill_manual(values = c("#F0A780", "#96B6D8", "#e34a33")) +
   labs(x = "Method", y = "NMSE (%)",
-       title = "",
+       title = "(D) Factor Model",
        colour = "", fill = "", linetype = "") +
   # scale_y_continuous(breaks = seq(0, 1, length.out = 5), labels = c("0%", "25%", "50%",
   #                                                                     "75%", "100%")) +
@@ -240,8 +276,98 @@ ggplot(dat_plot) +
         panel.grid.minor = element_blank(),
         legend.position = "top",
         panel.border = element_blank(),
-        axis.text.x=element_blank(),
-        # text = element_text(family = "STHeiti"),
-        plot.title = element_text(hjust = 0.5)) 
+        plot.title = element_text(size = 15, hjust = 0.5)) 
 
-ggsave(paste0("Figure/", "sim_fac_error", ".pdf"), width = 6, height = 5.5, dpi = 300)
+# ggsave(paste0("Figure/", "sim_fac_error", ".pdf"), width = 7, height = 6, dpi = 300)
+
+
+###############################################################################
+# Setting 4
+## Functional linear regression' case
+basis_num <- 3 # Number of basis functions used
+rat <- 0.05 # Noise level
+
+point_mark <- c(6, 8, 10) # Mean number of observed time points
+for(n in 100){
+  for(obs_point in point_mark){
+    source("Simulation_fun_ref.R")
+  }
+}
+
+dat_plot <- NULL
+for(k in 1:3){
+  n <- 100
+  obs_point <- point_mark[k]
+  load(paste0("Result/Result_", n, "_", obs_point, "_ref", ".rda"))
+  
+  fit_FSVD <- sapply(1:length(Result), function(i){
+    Result[[i]]$fit_beta_FSVD
+  })
+  fit_FSVD <- sapply(1:nrow(fit_FSVD), function(i){
+    c(quantile(fit_FSVD[i,], 0.025), mean(fit_FSVD[i,]), quantile(fit_FSVD[i,], 0.975))
+  })
+  
+  fit_FPCA <- sapply(1:length(Result), function(i){
+    Result[[i]]$fit_beta_FPCA
+  })
+  fit_FPCA <- sapply(1:nrow(fit_FPCA), function(i){
+    c(quantile(fit_FPCA[i,], 0.025), mean(fit_FPCA[i,]), quantile(fit_FPCA[i,], 0.975))
+  })
+  
+  fit_PFR <- sapply(1:length(Result), function(i){
+    Result[[i]]$fit_beta_PFR
+  })
+  fit_PFR <- sapply(1:nrow(fit_PFR), function(i){
+    c(quantile(fit_PFR[i,], 0.025), mean(fit_PFR[i,]), quantile(fit_PFR[i,], 0.975))
+  })
+  
+  p <- data.frame(
+    time = rep(seq(0, 1, length.out = 101), 3),
+    Ture = rep(Result[[1]]$dat_col$beta, 3),
+    Low = c(fit_FSVD[1,], fit_FPCA[1,], fit_PFR[1,]),
+    Mean = c(fit_FSVD[2,], fit_FPCA[2,], fit_PFR[2,]),
+    Upper = c(fit_FSVD[3,], fit_FPCA[3,], fit_PFR[3,]),
+    Method = c(rep("FSVD", 101), rep("FPCA", 101), rep("PFR", 101)),
+    n = rep(n, 303),
+    J = rep(paste0("{", obs_point - 2, ",...,", obs_point + 2, "}"), 303))
+  dat_plot <- rbind(dat_plot, p)
+}
+
+dat_plot$Method <- factor(dat_plot$Method, levels = c("PFR", "FPCA", "FSVD"))
+dat_plot$Upper[which(dat_plot$Upper > 5)] <- 5
+dat_plot$Low[which(dat_plot$Low < -5)] <- -5
+
+plot_FL <- ggplot(dat_plot) + 
+  geom_line(aes(x = time, y = Ture)) +
+  geom_line(aes(x = time, y = Mean), linetype = 2) +
+  geom_errorbar(aes(x = time, ymin = Low, ymax = Upper, color = Method), alpha = 0.5) +
+  facet_wrap(~J + Method, nrow = 3) +
+  # scale_color_manual(values = c("#F0A780", "#96B6D8", "#e34a33")) +
+  labs(x = "Domain", y = "Functional coefficient",
+       title = "(C) Functional Linear Regression",
+       colour = "", fill = "", linetype = "") +
+  # scale_y_continuous(limits = c(-5, 5)) +
+  # scale_y_log10() +
+  theme_bw() +
+  scale_color_manual(values = c("#2c7fb8", "#fdae61", "#e34a33"), 
+                     label = c("Penalized Functional Regression",
+                               "FPCA-Regression",
+                               "FSVD-Regression")
+  ) +
+  # ggthemes::theme_tufte() +
+  theme(text=element_text(size=15),
+        panel.grid.minor = element_blank(),
+        legend.position = "top",
+        # strip.text.x = element_blank(),      # Removes the Method facet titles
+        # strip.text.y = element_text(size = 12), # Keeps J facet titles
+        panel.border = element_blank(),
+        plot.title = element_text(size = 15, hjust = 0.5)) 
+
+gridExtra::grid.arrange(plot_FC, plot_FCL, plot_FL, plot_FM, ncol = 2,
+                        heights = unit(rep(1, 2), "null"), 
+                        widths = unit(rep(1, 2), "null"))
+p <- gridExtra::arrangeGrob(plot_FC, plot_FCL, plot_FL, plot_FM, ncol = 2,
+                            heights = unit(rep(1, 2), "null"), 
+                            widths = unit(rep(1, 2), "null"))
+
+ggsave(paste0("Figure/", "fit_comp", ".pdf"), p, width = 19, height = 15, dpi = 300)

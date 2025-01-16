@@ -16,6 +16,7 @@ library(fields)
 library(foreach)
 library(deSolve)
 library(filling)
+library(refund)
 
 ################################################################################
 # Data generation
@@ -90,12 +91,6 @@ data_gen_fun_iid <- function(basis_num, n, obs_poi, rat, norm){
       0
     })
   }))
-  
-  # a[,1] <- a[,1] / sqrt(sum(a[,1] ^ 2))
-  # for(k in 2:basis_num){
-  #   a[,k] <- a[,k] - a[,1:(k-1)] %*% (t(a[,1:(k-1)]) %*% a[,k]) 
-  #   a[,k] <- a[,k] / sqrt(sum(a[,k] ^ 2))
-  # }
   
   a <- t(sapply(1:n, function(i){
     sapply(1:basis_num, function(k){
@@ -256,6 +251,78 @@ data_gen_clu <- function(basis_num, n, obs_poi, rat, norm){
               basis_num = basis_num,
               n = n,
               cluter_label = cluter_label,
+              obs_point = obs_poi,
+              rat = rat,
+              time_grid = time_grid,
+              obs_sig = obs_sig,
+              norm = norm
+  ))
+}
+
+## Functional linear regression case
+data_gen_reg <- function(basis_num, n, obs_poi, rat, norm){
+  
+  sigma <- 2 * exp((basis_num):1 / 2)
+  time_grid <- seq(0, 1, length.out = 101)
+  basis <- fourier(time_grid, nbasis = basis_num + 3)[,2:(basis_num + 1)]
+  
+  a <- t(sapply(1:n, function(i){
+    sapply(1:basis_num, function(k){
+      sin(k * pi * (i + (n/ 4)) / (2 * n))
+    })
+  }))
+  
+  a[,1] <- a[,1] / sqrt(sum(a[,1] ^ 2))
+  for(k in 2:basis_num){
+    a[,k] <- a[,k] - a[,1:(k-1)] %*% (t(a[,1:(k-1)]) %*% a[,k]) 
+    a[,k] <- a[,k] / sqrt(sum(a[,k] ^ 2))
+  }
+  
+  a <- t(sapply(1:n, function(i){
+    sapply(1:basis_num, function(k){
+      rnorm(1, a[i,k],  abs(a[i,k]))
+    })
+  }))
+  
+  a <- t(t(a) * sigma) 
+  
+  fda_full <- basis %*% t(a)  
+  
+  if(is.numeric(rat) == T){
+    obs_sig <- sqrt(norm * rat)
+  }else{
+    norm <- (colSums(fda_full ^ 2)) * 0.01
+    obs_sig <- rep(1, n)
+  }
+  
+  beta <- basis[,c(3,2,1)] %*% c((1:basis_num) ^ (-1.2) * (-1) ^ (1:basis_num))
+  
+  obs_dat_Y <- lapply(1:n, function(i){
+    time_num <- sample((obs_poi - 2):(obs_poi + 2), 1)
+    time <- sort(sample(time_grid, time_num))
+    time_mark <- sapply(1:time_num, function(k) which.min(abs(time_grid - time[k])))
+    obs_point <- fda_full[time_mark,i] + rnorm(time_num, 0, obs_sig[i])
+    return(list(time = time, obs = obs_point))
+  })
+  
+  obs_dat_Z <- sapply(1:n, function(i){
+    mean(fda_full[,i] * beta) 
+  })
+  
+  if(is.finite(rat) == T){
+    obs_dat_Z <- obs_dat_Z + rnorm(length(obs_dat_Z), 0, sqrt(mean((obs_dat_Z) ^ 2)) * rat)
+  }else{
+    obs_dat_Z <- NULL
+  }
+  
+  return(list(obs_dat_Y = obs_dat_Y,
+              fda_full = fda_full,
+              obs_dat_Z = obs_dat_Z,
+              beta = beta,
+              basis = basis,
+              a = a,
+              basis_num = basis_num,
+              n = n,
               obs_point = obs_poi,
               rat = rat,
               time_grid = time_grid,
@@ -1140,6 +1207,61 @@ clu_error <- function(Result){
               error_FPCA = error_FPCA,
               error_FSVD = error_FSVD,
               error_FSVD_EM = error_FSVD_EM
+  ))
+}
+
+## Simulation for functional linear regression
+sim_func_reg <- function(basis_num, n, obs_point, rat, norm, seed){
+  
+  set.seed(seed)
+  dat_col <- data_gen_reg(basis_num, n, obs_point, rat, norm)
+  dat <- dat_col$obs_dat_Y
+  Z <- dat_col$obs_dat_Z
+  
+  Ly <- lapply(1:n, function(i) dat[[i]]$obs)
+  Lt <- lapply(1:n, function(i) dat[[i]]$time)
+  time_grid <- seq(0, 1, 0.01)
+  
+  # Plot
+  t <- c(sapply(1:n, function(i){dat_col$time_grid}))
+  Value <- c(sapply(1:n, function(i){dat_col$fda_full[,i]}))
+  m <- c(sapply(1:n, function(i){rep(i, 30)}))
+  
+  ## FSVD
+  fit_FSVD <- FSVD(Ly, Lt, R_max = 2 * basis_num, R_pre = basis_num, num_sel = "FD")
+  fit_ceof <- lm(Z ~ fit_FSVD$Score[,1:basis_num])
+  fit_beta_FSVD <- fit_FSVD$Intric_basis[,1:basis_num] %*% fit_ceof$coefficients[-1]
+  
+  ## FPCA
+  X <- list()
+  X$X <- list(Ly = Ly, Lt = Lt)
+  fit_FPCA <- FLM1(Y = Z, X = X, XTest = NULL, optnsListY = NULL, optnsListX = list(error = T, nRegGrid = 101, 
+                                                                                    methodMuCovEst = "smooth",
+                                                                                    methodBwCov = "GCV",
+                                                                                    methodSelectK = basis_num,
+                                                                                    methodXi = "CE",
+                                                                                    dataType = 'Sparse'
+  ), nPerm = NULL)
+  fit_beta_FPCA <- fit_FPCA$betaList[[1]]
+  
+  ## Penalized-functional-regression
+  fit_smo <- t(sapply(1:n, function(i){
+    fit <- smooth.spline(x = Lt[[i]], y = Ly[[i]], cv = F)
+    return(predict(fit, time_grid)$y)
+  }))
+  
+  fit_PFR <- pfr(Z ~ lf(X = fit_smo, argvals = time_grid,  k = 10, bs = "ps"), method = "GCV.Cp")
+  fit_beta_PFR <- coef(fit_PFR, n = 101)$value
+  
+  # plot(1:101, dat_col$beta)
+  # plot(1:101, fit_beta_FSVD)
+  # plot(1:101, fit_beta_FPCA)
+  # plot(1:101, fit_beta_PFR)
+  
+  return(list(dat_col = dat_col,
+              fit_beta_FSVD = fit_beta_FSVD,
+              fit_beta_FPCA = fit_beta_FPCA,
+              fit_beta_PFR = fit_beta_PFR
   ))
 }
 
