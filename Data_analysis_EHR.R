@@ -416,20 +416,37 @@ pp <- ggplot(dat_plot_loa) +
   # scale_x_discrete(labels = function(x) str_wrap(x, width = 15)) + 
   scale_fill_manual(values = c("#D6AFB9", "#7E9BB7")) + 
   labs(x = "", y = "Value",
-       title = "(A) Factor Loading",
+       title = "(C) Factor Loading",
        colour = "", fill = "", linetype = "") +
   coord_flip() +
   scale_x_discrete(limits = rev(feature_id))
 pp
 
-# A <- matrix(c(NA, 1, 1, 1, 1, 1, 
-#               NA, 1, 1, 1, 1, 1, 
-#               NA, 1, 1, 1, 1, 1, 
-#               2, 2, 2, 2, 2, 2,
-#               2, 2, 2, 2, 2, 2,
-#               2, 2, 2, 2, 2, 2, 
-#               2, 2, 2, 2, 2, 2), byrow = T, nrow = 7)
-grid.arrange(pp, p, ncol = 2)
-ppp <- arrangeGrob(pp, p, ncol = 2) 
+ppp <- ggplot(dat_plot_fsvd) + 
+  geom_point(aes(x = Time, y = Value), color = "orange") + 
+  geom_line(aes(x = Time, y = Estimation), size = 0.7, color = "blue") + 
+  facet_wrap(.~Feature, scales = "free_y", ncol = 3) +
+  labs(x = "Time (min)", y = "Value",
+       title = "(A) Functional Completion",
+       colour = "", fill = "", linetype = "") + 
+  # scale_color_manual(values = c("blue")) +
+  # scale_linetype_manual(values = c(2, 1)) + 
+  theme_bw(base_family = "Times") +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "top",
+        panel.border = element_blank(),
+        # text = element_text(family = "STHeiti"),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 0)) 
+
+A <- matrix(c(rep(3, 6), NA, 1, 1, 1, 1, 1,
+              rep(3, 6), NA, 1, 1, 1, 1, 1,
+              rep(3, 6), NA, 1, 1, 1, 1, 1,
+              rep(3, 6), 2, 2, 2, 2, 2, 2,
+              rep(3, 6), 2, 2, 2, 2, 2, 2,
+              rep(3, 6), 2, 2, 2, 2, 2, 2,
+              rep(3, 6), 2, 2, 2, 2, 2, 2), byrow = T, nrow = 7)
+grid.arrange(p, pp, ppp, layout_matrix = A)
+pppp <- arrangeGrob(p, pp, ppp, layout_matrix = A) 
   
-ggsave(paste0("Figure/", "fit_fac_loa", ".pdf"), ppp, width = 12, height = 3, dpi = 300)
+ggsave(paste0("Figure/", "fit_fac_loa", ".pdf"), pppp, width = 16, height = 6, dpi = 300)
