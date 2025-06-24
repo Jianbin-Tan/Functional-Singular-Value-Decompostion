@@ -17,6 +17,7 @@ library(foreach)
 library(deSolve)
 library(filling)
 library(refund)
+library(funreg)
 
 ################################################################################
 # Data generation
@@ -997,15 +998,22 @@ sim_func_fac <- function(basis_num, n, obs_point, rat, seed){
   time_grid_mat <- seq(0, 1, length.out = obs_point)
   Y <- sapply(1:n, function(i){
     sapply(1:obs_point, function(t){
-      mark <- sapply(1:length(Lt[[i]]), function(k) (abs(Lt[[i]][k] - time_grid_mat[t]) < 0.2))
+      mark <- sapply(1:length(Lt[[i]]), function(k) (abs(Lt[[i]][k] - time_grid_mat[t]) < 0.1))
       if(sum(mark == T) != 0){
         mean(Ly[[i]][mark])
       }else{
-        mark <- which.min(sapply(1:length(Lt[[i]]), function(k) (abs(Lt[[i]][k] - time_grid_mat[t]))))
-        Ly[[i]][mark]
+        NA
       }
     })
   })
+  
+  # Y <- sapply(1:n, function(i){
+  #   x <- rep(NA, length(time_grid))
+  #   mark <- sapply(1:length(Lt[[i]]), function(k) which.min(abs(Lt[[i]][k] - time_grid)))
+  #   x[mark] <- Ly[[i]]
+  #   return(x)
+  # })
+  Y <- fill.nuclear(Y)$X
   
   ## SVD
   fit_svd <- svd(Y)
@@ -1245,14 +1253,15 @@ sim_func_reg <- function(basis_num, n, obs_point, rat, norm, seed){
   fit_beta_FPCA <- fit_FPCA$betaList[[1]]
   
   ## Penalized-functional-regression
-  fit_smo <- t(sapply(1:n, function(i){
-    fit <- smooth.spline(x = Lt[[i]], y = Ly[[i]], cv = F)
-    return(predict(fit, time_grid)$y)
-  }))
-  
-  fit_PFR <- pfr(Z ~ lf(X = fit_smo, argvals = time_grid,  k = 10, bs = "ps"), method = "GCV.Cp")
-  fit_beta_PFR <- coef(fit_PFR, n = 101)$value
-  
+  fit_PFR <- funreg(id = unlist(lapply(1:n, function(i) rep(i, length(Lt[[i]])))),
+                    response = unlist(lapply(1:n, function(i) rep(Z[i], length(Lt[[i]])))),
+                    time  = unlist(lapply(1:n, function(i) Lt[[i]])),
+                    x = matrix(unlist(lapply(1:n, function(i) Ly[[i]])), ncol =  1),
+                    times.for.fit.grid = time_grid,
+                    basis.method = 2
+  )
+  # fit_PFR <- pfr(Z ~ lf(X = fit_smo, argvals = time_grid,  k = 10, bs = "ps"), method = "GCV.Cp")
+  fit_beta_PFR <-  summary(fit_PFR)$functional.covariates.table[,2]
   # plot(1:101, dat_col$beta)
   # plot(1:101, fit_beta_FSVD)
   # plot(1:101, fit_beta_FPCA)

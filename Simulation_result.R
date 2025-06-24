@@ -189,17 +189,16 @@ for(i in 1:3){
     load(paste0("Result/Result_", n, "_", obs_point, "_clu", ".rda"))
     res <- clu_error(Result)
     clu_Error <- rbind(clu_Error, 
-                       data.frame(value = unlist(res),
+                       data.frame(value = unlist(res)[-c(201:300)],
                                   Method = rep(c(rep("Smoothing-clustering", 100), rep("FPCA-clustering", 100),
-                                                 rep("FSVD-clustering", 100), rep("FSVD-EM-clustering", 100)), 1),
-                                  n = rep(n, 400),
-                                  p = rep(paste0("{", obs_point - 2, ",...,", obs_point + 2, "}"), 400)))
+                                                 rep("FSVD-EM-clustering", 100)), 1),
+                                  n = rep(n, 300),
+                                  p = rep(paste0("{", obs_point - 2, ",...,", obs_point + 2, "}"), 300)))
   }
 }
 
 clu_Error$Method <- factor(clu_Error$Method, levels = c("Smoothing-clustering",
                                                         "FPCA-clustering",
-                                                        "FSVD-clustering",
                                                         "FSVD-EM-clustering"))
 
 plot_FCL <- ggplot(clu_Error) +
@@ -207,7 +206,7 @@ plot_FCL <- ggplot(clu_Error) +
                position = "dodge", size = 0.3) +
   facet_wrap(n ~  p) +
   labs(x = "Method", y = "ARI",
-       title = "(B) Functional Clustering",
+       title = "(C) Functional Clustering",
        colour = "", fill = "", linetype = "") +
   theme_bw() +
   theme(text=element_text(size=15),
@@ -217,8 +216,8 @@ plot_FCL <- ggplot(clu_Error) +
         panel.border = element_blank(),
         plot.title = element_text(size = 15, hjust = 0.5)) +
   # scale_fill_manual(values = c("blue", "orange")) 
-  scale_fill_manual(values = c("#2c7fb8", "#fdae61", "red", "#b30000")) +
-  scale_color_manual(values = c("#2c7fb8", "#fdae61", "red", "#b30000"))
+  scale_fill_manual(values = c("#2c7fb8", "#fdae61", "#e34a33")) +
+  scale_color_manual(values = c("#2c7fb8", "#fdae61", "#e34a33"))
 # scale_color_manual(values = c("blue", "orange", "red", "#b30000"))
 
 # ggsave(paste0("Figure/", "sim_clu", ".pdf"), width = 7, height = 6, dpi = 300)
@@ -230,7 +229,7 @@ basis_num <- 3
 rat <- 0.05
 
 sample_mark <- c(50, 100, 150)
-point_mark <- c(6, 10, 14)
+point_mark <- c(6, 8, 10)
 
 for(n in sample_mark){
   for(obs_point in point_mark){
@@ -253,7 +252,7 @@ for(i in 1:3){
 }
 
 colnames(dat_plot) <- c("NMSE", "Method", "n", "J")
-dat_plot$J <- factor(dat_plot$J, level = c("{4,...,8}", "{8,...,12}", "{12,...,16}"))
+dat_plot$J <- factor(dat_plot$J, level = c("{4,...,8}", "{6,...,10}", "{8,...,12}"))
 
 plot_FM <- ggplot(dat_plot) + 
   geom_bar(aes(x = Method, y = NMSE, fill = Method),
@@ -344,9 +343,9 @@ plot_FL <- ggplot(dat_plot) +
   facet_wrap(~J + Method, nrow = 3) +
   # scale_color_manual(values = c("#F0A780", "#96B6D8", "#e34a33")) +
   labs(x = "Domain", y = "Functional coefficient",
-       title = "(C) Functional Linear Regression",
+       title = "(B) Functional Linear Regression",
        colour = "", fill = "", linetype = "") +
-  # scale_y_continuous(limits = c(-5, 5)) +
+  scale_y_continuous(limits = c(-5, 5)) +
   # scale_y_log10() +
   theme_bw() +
   scale_color_manual(values = c("#2c7fb8", "#fdae61", "#e34a33"), 
@@ -366,7 +365,7 @@ plot_FL <- ggplot(dat_plot) +
 gridExtra::grid.arrange(plot_FC, plot_FCL, plot_FL, plot_FM, ncol = 2,
                         heights = unit(rep(1, 2), "null"), 
                         widths = unit(rep(1, 2), "null"))
-p <- gridExtra::arrangeGrob(plot_FC, plot_FCL, plot_FL, plot_FM, ncol = 2,
+p <- gridExtra::arrangeGrob(plot_FC, plot_FL, plot_FCL, plot_FM, ncol = 2,
                             heights = unit(rep(1, 2), "null"), 
                             widths = unit(rep(1, 2), "null"))
 
