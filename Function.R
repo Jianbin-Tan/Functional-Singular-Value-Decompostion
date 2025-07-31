@@ -552,6 +552,7 @@ FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
     
     lambda <- FSVD_tune(fit_FSVD$res, time_grid, dat_t, phi = phi_init, tran_datset)
     fit_FSVD <- FSVD_rk(fit_FSVD$res, dat_t, phi = phi_init, lambda, time_grid, init_num = 500, abs = 10 ^ (-5))
+    print(R)
   }
   
   R_max <- max(min(R_max, sum(cumsum(Rho[-R_max] <= Rho[-1] * 0.95) == 0) + 1), 2)
