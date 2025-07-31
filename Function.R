@@ -477,7 +477,8 @@ tun_sel <- function(t, y, basis, lambda){
 
 ## FSVD implementation
 FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
-                 time_grid = seq(0, 1, length.out = 101)
+                 time_grid = seq(0, 1, length.out = 101),
+                 Large_data = F
 ){
   
   dat_t <- tran_dat(Lt, time_grid)
@@ -508,7 +509,11 @@ FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
     return(A)
   })
   
-  Comp_Y <-  fill.nuclear(dat_raw)$X
+  if(Large_data == F){
+    Comp_Y <-  fill.nuclear(dat_raw)$X
+  }else{
+    Comp_Y <-  fill.SoftImpute(dat_raw, lambdas = 0.0001)$X[,,1]
+  }
   
   ## R = 1
   phi <- initize_FSVD(Ly, Lt, time_grid, dat_t, Comp_Y)
