@@ -18,6 +18,7 @@ library(deSolve)
 library(filling)
 library(refund)
 library(funreg)
+library(softImpute)
 
 ################################################################################
 # Data generation
@@ -499,8 +500,8 @@ FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
   })
   
   time_grid_mat <- unique(unlist(Lt))
-  time_grid_mat_mark <- sapply(1:n, function(i){
-    sapply(1:length(Lt[[i]]), function(k) which(Lt[[i]][k] == time_grid_mat))
+  time_grid_mat_mark <- lapply(1:n, function(i){
+    sapply(1:length(Lt[[i]]), function(k) which.min(abs(Lt[[i]][k] - time_grid_mat)))
   })
   time_grid_mat_tol_mark <- sapply(1:length(time_grid_mat), function(k) which.min(abs(time_grid_mat[k] - time_grid)))
   dat_raw <- sapply(1:n, function(i){
@@ -1167,7 +1168,7 @@ sim_func_clu <- function(basis_num, n, obs_point, rat, seed, norm){
       
     }, warning = function(m) {NULL})
   }
-  
+
   return(list(dat_col = dat_col,
               fit_clu_spline =  fit_clu_spline,
               fit_clu_FPCA = fit_clu_FPCA,
@@ -1259,12 +1260,12 @@ sim_func_reg <- function(basis_num, n, obs_point, rat, norm, seed){
   
   ## Penalized-functional-regression
   fit_PFR <- funreg(id = unlist(lapply(1:n, function(i) rep(i, length(Lt[[i]])))),
-                    response = unlist(lapply(1:n, function(i) rep(Z[i], length(Lt[[i]])))),
-                    time  = unlist(lapply(1:n, function(i) Lt[[i]])),
-                    x = matrix(unlist(lapply(1:n, function(i) Ly[[i]])), ncol =  1),
-                    times.for.fit.grid = time_grid,
-                    basis.method = 2
-  )
+         response = unlist(lapply(1:n, function(i) rep(Z[i], length(Lt[[i]])))),
+         time  = unlist(lapply(1:n, function(i) Lt[[i]])),
+         x = matrix(unlist(lapply(1:n, function(i) Ly[[i]])), ncol =  1),
+         times.for.fit.grid = time_grid,
+         basis.method = 2
+         )
   # fit_PFR <- pfr(Z ~ lf(X = fit_smo, argvals = time_grid,  k = 10, bs = "ps"), method = "GCV.Cp")
   fit_beta_PFR <-  summary(fit_PFR)$functional.covariates.table[,2]
   # plot(1:101, dat_col$beta)
