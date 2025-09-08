@@ -294,7 +294,6 @@ p_4 <- ggplot(dat_plot) +
         axis.text.x = element_text(angle = 0)) + 
   scale_color_manual(values = c('#fc8d62', 'blue')) 
 p_4
-# ggsave(paste0("code/Figure/", "Map_clu", ".pdf"), width = 10, height = 10, dpi = 300)
 
 dat_plot <- data.frame(
   X = dat$Long,
@@ -387,4 +386,87 @@ p <- gridExtra::grid.arrange(p_1, p_2, p_3, p_4, p_5, ncol = 3, layout_matrix = 
 
 ggsave(paste0("Figure/", "curve_analysis", ".pdf"), p, width = 10, height = 7, dpi = 300)
 
+################################################################################
+# Cluster-specific IBFs
+clu <- apply(fit_clu_FSVD$Probability_clu, c(2), which.max)
+fit_FSVD_clu_1 <- FSVD(Ly = lapply(which(clu == 1), function(i) Ly[[i]]),
+                       Lt = lapply(which(clu == 1), function(i) Lt[[i]]),
+                       R_max = 4, R_pre = NULL, num_sel = "FD")
+
+fit_FSVD_clu_2 <- FSVD(Ly = lapply(which(clu == 2), function(i) Ly[[i]]),
+                       Lt = lapply(which(clu == 2), function(i) Lt[[i]]),
+                       R_max = 4, R_pre = NULL, num_sel = "FD")
+
+
+## IBFs for cluster 1
+fit_FSVD_clu_1$Intric_basis <- sapply(1:4, function(k)  fit_FSVD_clu_1$Intric_basis[,k] * ifelse(fit_FSVD_clu_1$Intric_basis[2,k] > fit_FSVD_clu_1$Intric_basis[1,k], 1, -1))
+dat_plot <- data.frame(
+  time = rep(seq(0, 66, length.out = 101), 4),
+  value = c(fit_FSVD_clu_1$Intric_basis),
+  mark = c(rep(paste0("1st IBF"), 101), 
+           rep(paste0("2nd IBF"), 101),
+           rep(paste0("3rd IBF"), 101),
+           rep(paste0("4th IBF"), 101))
+)
+
+dat_plot$mark <- as.factor(dat_plot$mark)
+
+p_1 <- ggplot(dat_plot) + 
+  geom_line(aes(x = time, y = value, group = mark, color = mark), size = 0.7) +
+  labs(x = "Day since 20+ cases", y = "Value of functions",
+       title = "(A) Cluster 1",
+       colour = "", fill = "", linetype = "") +
+  theme_bw(base_family = "Times") +
+  scale_x_continuous(labels = c(0, 20, 40, 60)) +
+  # scale_x_continuous(breaks = seq(0, 1, length.out = 7)) +
+  ylim(c(-2.5, 2.5)) +
+  # annotate("text", x = 0, y = 2, label = c(paste0("Cross-validation error: ", round(error[2], 3))), hjust = 0, vjust = 0, size = 3.5) +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "top",
+        panel.border = element_blank(),
+        # text = element_text(family = "STHeiti"),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 0)) +
+  # scale_linetype_manual(values = c(1, 2, 3, 4)) +
+  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3')) 
+p_1
+
+### IBFs for cluster 2
+fit_FSVD_clu_2$Intric_basis <- sapply(1:4, function(k)  fit_FSVD_clu_2$Intric_basis[,k] * ifelse(fit_FSVD_clu_2$Intric_basis[2,k] > fit_FSVD_clu_2$Intric_basis[1,k], 1, -1))
+dat_plot <- data.frame(
+  time = rep(seq(0, 66, length.out = 101), 4),
+  value = c(fit_FSVD_clu_2$Intric_basis),
+  mark = c(rep(paste0("1st IBF"), 101), 
+           rep(paste0("2nd IBF"), 101),
+           rep(paste0("3rd IBF"), 101),
+           rep(paste0("4th IBF"), 101))
+)
+
+dat_plot$mark <- as.factor(dat_plot$mark)
+
+p_2 <- ggplot(dat_plot) + 
+  geom_line(aes(x = time, y = value, group = mark, color = mark), size = 0.7) +
+  labs(x = "Day since 20+ cases", y = "Value of functions",
+       title = "(B) Cluster 2",
+       colour = "", fill = "", linetype = "") +
+  theme_bw(base_family = "Times") +
+  scale_x_continuous(labels = c(0, 20, 40, 60)) +
+  # scale_x_continuous(breaks = seq(0, 1, length.out = 7)) +
+  ylim(c(-2.5, 2.5)) +
+  # annotate("text", x = 0, y = 2, label = c(paste0("Cross-validation error: ", round(error[2], 3))), hjust = 0, vjust = 0, size = 3.5) +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "top",
+        panel.border = element_blank(),
+        # text = element_text(family = "STHeiti"),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 0)) +
+  # scale_linetype_manual(values = c(1, 2, 3, 4)) +
+  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3')) 
+p_2
+
+## Combine figures
+gridExtra::grid.arrange(p_1, p_2, ncol = 2)
+p <- gridExtra::grid.arrange(p_1, p_2, ncol = 2)
+
+ggsave(paste0("Figure/", "IBF_clu", ".pdf"), p, width = 8, height = 3.5, dpi = 300)
 
