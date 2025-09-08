@@ -431,6 +431,7 @@ FSVD_rk <- function(Ly, dat_t, phi, lambda, time_grid, init_num, abs){
 
 FSVD_CV <- function(Ly, dat_t, phi, lambda, tran_datset, time_grid){
   
+  n <- length(Ly)
   fit_p <- FSVD_rk(Ly, dat_t, phi, lambda, time_grid, init_num = 500, abs = 10 ^ (-5))
   
   res <- sapply(1:length(tran_datset), function(k){
@@ -453,13 +454,14 @@ FSVD_CV <- function(Ly, dat_t, phi, lambda, tran_datset, time_grid){
 
 FSVD_tune <- function(Ly, time_grid, dat_t, phi, tran_datset){
   
+  m <- mean(dat_t$sam_num)
+  n <- length(Ly)
+  
   tran_datset <- lapply(1:length(tran_datset), function(k){
-    Ly_i <- lapply((1:n), function(i) Ly[[i]][tran_datset[[k]]$mark[[i]]])
+    Ly_i <- lapply(1:n, function(i) Ly[[i]][tran_datset[[k]]$mark[[i]]])
     return(list(Lt = tran_datset[[k]]$Lt, Ly = Ly_i, dat_t = tran_datset[[k]]$dat_t, mark = tran_datset[[k]]$mark))
   })
   
-  m <- mean(dat_t$sam_num)
-  n <- length(Ly)
   time_tun <- exp(seq(log(10^(-6)), log(10 ^ (1)), length.out = 20)) 
   
   loss <- lapply(time_tun, function(lambda){
@@ -494,7 +496,7 @@ FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
         1:length(Lt[[i]])
       }
     })
-    Lt_i <- lapply((1:n), function(i) Lt[[i]][mark[[i]]])
+    Lt_i <- lapply(1:n, function(i) Lt[[i]][mark[[i]]])
     dat_t_i <- tran_dat(Lt_i, time_grid)
     return(list(Lt = Lt_i, dat_t = dat_t_i, mark = mark))
   })
