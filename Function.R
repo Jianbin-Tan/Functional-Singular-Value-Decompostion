@@ -554,7 +554,7 @@ FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
     
     lambda <- FSVD_tune(fit_FSVD$res, time_grid, dat_t, phi = phi_init, tran_datset)
     fit_FSVD <- FSVD_rk(fit_FSVD$res, dat_t, phi = phi_init, lambda, time_grid, init_num = 500, abs = 10 ^ (-5))
-    print(R)
+    # print(R)
   }
   
   R_max <- max(min(R_max, sum(cumsum(Rho[-R_max] <= Rho[-1] * 0.95) == 0) + 1), 2)
@@ -568,6 +568,7 @@ FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
       R <- R_pre
     }else{
       R <- which.min(IC)
+      R <- max(R, 2)
     }
     
     W <- Phi[,1:R]
@@ -601,6 +602,7 @@ FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
       R <- R_pre
     }else{
       R <- which.min(IC)
+      R <- max(R, 2)
     }
     
     W <- Phi[,1:R]
@@ -1289,6 +1291,9 @@ sim_func_reg <- function(basis_num, n, obs_point, rat, norm, seed){
 MedImpute <- function(dat, K, time_grid, h, alpha){
   I <- which(rowSums(is.na(dat)) > 0)
   
+  n <- nrow(dat)
+  p <- ncol(dat)
+  
   dis_t <- rdist(time_grid)
   W <- matrix(0, nrow = nrow(dat), ncol = ncol(dat))
   Z <- matrix(0, nrow = nrow(dat), ncol = nrow(dat))
@@ -1296,9 +1301,6 @@ MedImpute <- function(dat, K, time_grid, h, alpha){
     W[i,which(is.na(dat[i,]) == F)] <- unlist(dat[i,which(is.na(dat[i,]) == F)])
     Z[i,sample((1:n)[-i], 1)] <- 1
   }
-  
-  n <- nrow(dat)
-  p <- ncol(dat)
   
   C <- sapply(h, function(k){
     A <- 2 ^ (- dis_t / k)

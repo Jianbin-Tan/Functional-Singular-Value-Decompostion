@@ -65,6 +65,7 @@ p_ori <- ggplot(dat_plot) +
 p_ori
 
 ggsave(paste0("Figure/", "real_data", ".pdf"), width = 9.5, height = 5, dpi = 300)
+feature_id[4] <- "Blood Pressure"
 
 ## FSVD
 fit_FSVD <- FSVD(Ly, Lt, R_max = 10, R_pre = F, num_sel = "FM", time_grid = time_grid)
@@ -266,8 +267,6 @@ dat_plot$Estimation_Curve[label][dat_plot$Estimation_Curve[label] > 1.6] <- NA
 
 label <- (dat_plot$Method == "Matrix completion") & (dat_plot$Feature != "Base Excess")
 dat_plot$Estimation[label][dat_plot$Estimation[label] < 0.4] <- NA
-
-# dat_plot$Estimation[dat_plot$Method == "Matrix completion"][dat_plot$Estimation[dat_plot$Method == "Matrix completion"] < 0.4] <- NA
 
 p_fit <- ggplot(dat_plot) + 
   geom_point(aes(x = Time, y = Value), color = "orange", size = 1.2) + 
