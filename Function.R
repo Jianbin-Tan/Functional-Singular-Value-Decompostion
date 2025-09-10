@@ -482,10 +482,7 @@ FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
                  Large_data = F
 ){
   
-  dat_t <- tran_dat(Lt, time_grid)
   n <- length(Ly)
-  m <- mean(sapply(1:n, function(i) length(Ly[[i]])))
-  
   for(i in 1:n){
     mark <- which(Ly[[i]] != 0)
     Ly[[i]] <- Ly[[i]][mark] 
@@ -494,15 +491,18 @@ FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
   time_grid_mat <- unique(unlist(Lt))
   Lt <- lapply(1:n, function(i) (Lt[[i]] - min(time_grid_mat)) /  (max(time_grid_mat) - min(time_grid_mat)))
   
+  dat_t <- tran_dat(Lt, time_grid)
+  m <- mean(sapply(1:n, function(i) length(Ly[[i]])))
+  
   # Condition check
   if (length(time_grid_mat) < 5) {
     warning("Warning: Total number of the unique time points is less than 5.")
   }else if (sum(sapply(1:n, function(i) length(Ly[[i]])) < 2) > 0){
-    warning("Warning: The number of non-zero observations in Ly is less than 2 for some subjects.")
+    warning("Warning: The number of non-zero observations in Ly[[i]] is less than 2 for some subjects.")
   }else{
     
-    if(sum((sapply(1:n, function(i) mean(Ly[[i]]^2)) - 1) <= 0.01) != n){
-      warning("Warning: the Euclidean norm of Ly[[i]] is not equal to 1 for some subjects.")
+    if(sum((sapply(1:n, function(i) mean(Ly[[i]]^2)) - 1) <= 0.3) != n){
+      warning("Warning: The Euclidean norm of Ly[[i]] is not close to 1 for some subjects.")
     }
     
     tran_datset <- lapply(1:5, function(k){
