@@ -402,8 +402,6 @@ FSVD_rk <- function(Ly, dat_t, phi, lambda, time_grid, init_num, abs){
     phi_t <- predict(fit, x = time_grid)$y
     phi_t_2 <- predict(fit, x = time_grid, deriv = 2)$y
     
-    # rho_t <- sqrt(sum(phi_t ^ 2) * 0.01)
-    # phi_t <- phi_t
     pen <- sum((phi_t_2) ^ 2 * 0.01)
     
     na_mark <- sum(is.na(phi_t)) != 0
@@ -488,65 +486,67 @@ FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
   n <- length(Ly)
   m <- mean(sapply(1:n, function(i) length(Ly[[i]])))
   
-  tran_datset <- lapply(1:5, function(k){
-    mark <- lapply(1:n, function(i){
-      if(k <= length(Lt[[i]])){
-        setdiff(1:length(Lt[[i]]), seq(k, length(Lt[[i]]), 5))
-      }else{
-        1:length(Lt[[i]])
-      }
-    })
-    Lt_i <- lapply(1:n, function(i) Lt[[i]][mark[[i]]])
-    dat_t_i <- tran_dat(Lt_i, time_grid)
-    return(list(Lt = Lt_i, dat_t = dat_t_i, mark = mark))
-  })
-  
-  time_grid_mat <- unique(unlist(Lt))
-  time_grid_mat_mark <- lapply(1:n, function(i){
-    sapply(1:length(Lt[[i]]), function(k) which.min(abs(Lt[[i]][k] - time_grid_mat)))
-  })
-  time_grid_mat_tol_mark <- sapply(1:length(time_grid_mat), function(k) which.min(abs(time_grid_mat[k] - time_grid)))
-  dat_raw <- sapply(1:n, function(i){
-    A <- rep(NA, length(time_grid_mat))
-    A[time_grid_mat_mark[[i]]] <- Ly[[i]]
-    return(A)
-  })
-  
-  if(Large_data == F){
-    Comp_Y <-  fill.nuclear(dat_raw)$X
-  }else{
-    Comp_Y <-  fill.SoftImpute(dat_raw, lambdas = 0.0001)$X[,,1]
+  for(i in 1:n){
+    mark <- which(Ly[[i]] != 0)
+    Ly[[i]] <- Ly[[i]][mark] 
+    Lt[[i]] <- Lt[[i]][mark] 
   }
+  time_grid_mat <- unique(unlist(Lt))
+  Lt <- lapply(1:n, function(i) (Lt[[i]] - min(time_grid_mat)) /  (max(time_grid_mat) - min(time_grid_mat)))
   
-  ## R = 1
-  phi <- initize_FSVD(Ly, Lt, time_grid, dat_t, Comp_Y)
-  lambda <- FSVD_tune(Ly, time_grid, dat_t, phi = phi, tran_datset)
-  fit_FSVD <- FSVD_rk(Ly, dat_t, phi = phi, lambda = lambda, time_grid, init_num = 500, abs = 10 ^ (-5))
-  
-  R <- 1
-  
-  Rho <- fit_FSVD$rho
-  Phi <- matrix(fit_FSVD$phi, length(time_grid))
-  A <- matrix(fit_FSVD$a, n)
-  Comp_Y <- Comp_Y - Rho * Phi[time_grid_mat_tol_mark] %*% t(A)
-  
-  ## R = 2
-  phi <- initize_FSVD(fit_FSVD$res, Lt, time_grid, dat_t, Comp_Y)
-  fit <- lm(phi ~ Phi + 0)
-  phi_init <- fit$residuals
-  phi_init <- phi_init / sqrt(sum(phi_init ^ 2) * 0.01)
-  
-  lambda <- FSVD_tune(fit_FSVD$res, time_grid, dat_t, phi = phi_init, tran_datset)
-  fit_FSVD <- FSVD_rk(fit_FSVD$res, dat_t, phi = phi_init, lambda, time_grid, init_num = 500, abs = 10 ^ (-5))
-  
-  while(R < R_max){
-    R <- R + 1
+  # Condition check
+  if (length(time_grid_mat) < 5) {
+    warning("Warning: Total number of the unique time points is less than 5.")
+  }else if (sum(sapply(1:n, function(i) length(Ly[[i]])) < 2) > 0){
+    warning("Warning: The number of non-zero observations in Ly is less than 2 for some subjects.")
+  }else{
     
-    Rho <- c(Rho, fit_FSVD$rho)
-    Phi <- cbind(Phi, fit_FSVD$phi)
-    A <- cbind(A, fit_FSVD$a)
-    Comp_Y <- Comp_Y - Rho[R] * Phi[time_grid_mat_tol_mark,R] %*% t(A[,R])
+    if(sum((sapply(1:n, function(i) mean(Ly[[i]]^2)) - 1) <= 0.01) != n){
+      warning("Warning: the Euclidean norm of Ly[[i]] is not equal to 1 for some subjects.")
+    }
     
+    tran_datset <- lapply(1:5, function(k){
+      mark <- lapply(1:n, function(i){
+        if(k <= length(Lt[[i]])){
+          setdiff(1:length(Lt[[i]]), seq(k, length(Lt[[i]]), 5))
+        }else{
+          1:length(Lt[[i]])
+        }
+      })
+      Lt_i <- lapply(1:n, function(i) Lt[[i]][mark[[i]]])
+      dat_t_i <- tran_dat(Lt_i, time_grid)
+      return(list(Lt = Lt_i, dat_t = dat_t_i, mark = mark))
+    })
+    
+    time_grid_mat_mark <- lapply(1:n, function(i){
+      sapply(1:length(Lt[[i]]), function(k) which.min(abs(Lt[[i]][k] - time_grid_mat)))
+    })
+    time_grid_mat_tol_mark <- sapply(1:length(time_grid_mat), function(k) which.min(abs(time_grid_mat[k] - time_grid)))
+    dat_raw <- sapply(1:n, function(i){
+      A <- rep(NA, length(time_grid_mat))
+      A[time_grid_mat_mark[[i]]] <- Ly[[i]]
+      return(A)
+    })
+    
+    if(Large_data == F){
+      Comp_Y <-  fill.nuclear(dat_raw)$X
+    }else{
+      Comp_Y <-  fill.SoftImpute(dat_raw, lambdas = 0.0001)$X[,,1]
+    }
+    
+    ## R = 1
+    phi <- initize_FSVD(Ly, Lt, time_grid, dat_t, Comp_Y)
+    lambda <- FSVD_tune(Ly, time_grid, dat_t, phi = phi, tran_datset)
+    fit_FSVD <- FSVD_rk(Ly, dat_t, phi = phi, lambda = lambda, time_grid, init_num = 500, abs = 10 ^ (-5))
+    
+    R <- 1
+    
+    Rho <- fit_FSVD$rho
+    Phi <- matrix(fit_FSVD$phi, length(time_grid))
+    A <- matrix(fit_FSVD$a, n)
+    Comp_Y <- Comp_Y - Rho * Phi[time_grid_mat_tol_mark] %*% t(A)
+    
+    ## R = 2
     phi <- initize_FSVD(fit_FSVD$res, Lt, time_grid, dat_t, Comp_Y)
     fit <- lm(phi ~ Phi + 0)
     phi_init <- fit$residuals
@@ -554,94 +554,112 @@ FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
     
     lambda <- FSVD_tune(fit_FSVD$res, time_grid, dat_t, phi = phi_init, tran_datset)
     fit_FSVD <- FSVD_rk(fit_FSVD$res, dat_t, phi = phi_init, lambda, time_grid, init_num = 500, abs = 10 ^ (-5))
-    # print(R)
-  }
-  
-  R_max <- max(min(R_max, sum(cumsum(Rho[-R_max] <= Rho[-1] * 0.95) == 0) + 1), 2)
-  if(num_sel == "FM"){
     
-    IC <- sapply(1:R_max, function(r){
-      log(1 / length(unlist(Ly)) * sum(sapply(1:n, function(i) sum((Ly[[i]] - matrix(Phi[dat_t$time_mark[[i]],1:r], nrow = length(dat_t$time_mark[[i]])) %*% diag(Rho[1:r], nrow = r) %*% c(A[i,1:r])) ^ 2)))) + r * log(min(n, m)) / min(n, m)
-    })
-    
-    if(is.numeric(R_pre) == T){
-      R <- R_pre
-    }else{
-      R <- which.min(IC)
-      R <- max(R, 2)
+    while(R < R_max){
+      R <- R + 1
+      
+      Rho <- c(Rho, fit_FSVD$rho)
+      Phi <- cbind(Phi, fit_FSVD$phi)
+      A <- cbind(A, fit_FSVD$a)
+      Comp_Y <- Comp_Y - Rho[R] * Phi[time_grid_mat_tol_mark,R] %*% t(A[,R])
+      
+      phi <- initize_FSVD(fit_FSVD$res, Lt, time_grid, dat_t, Comp_Y)
+      fit <- lm(phi ~ Phi + 0)
+      phi_init <- fit$residuals
+      phi_init <- phi_init / sqrt(sum(phi_init ^ 2) * 0.01)
+      
+      lambda <- FSVD_tune(fit_FSVD$res, time_grid, dat_t, phi = phi_init, tran_datset)
+      fit_FSVD <- FSVD_rk(fit_FSVD$res, dat_t, phi = phi_init, lambda, time_grid, init_num = 500, abs = 10 ^ (-5))
+      # print(R)
     }
     
-    W <- Phi[,1:R]
-    fit <- qr(W)
-    Fac_serial <- qr.Q(fit) * 10
+    R_max <- max(min(R_max, sum(cumsum(Rho[-R_max] <= Rho[-1] * 0.95) == 0) + 1), 2)
     
-    Loading <- A[,1:R] %*% diag(Rho[1:R], nrow = R) %*% t(qr.R(fit) / 10)
-    
-    fit <- qr(Loading)
-    Loading <- qr.Q(fit)
-    
-    Fac_serial <- Fac_serial %*% t(qr.R(fit))
-    
-    return(list(
-      Loading = Loading,
-      Fac_serial = Fac_serial,
-      Rho = Rho,
-      A = A,
-      Phi = Phi, 
-      R = R,
-      dat_t  = dat_t
-    ))
-    
-  }else if(num_sel == "FD"){
-    
-    IC <- sapply(1:R_max, function(r){
-      sum(sapply(1:n, function(i) length(Ly[[i]]) * log(mean((Ly[[i]] - matrix(Phi[dat_t$time_mark[[i]],1:r], nrow = length(dat_t$time_mark[[i]])) %*% diag(Rho[1:r], nrow = r) %*% c(A[i,1:r])) ^ 2)))) + 2 * n * r
-    })
-    
-    if(is.numeric(R_pre) == T){
-      R <- R_pre
+    if(num_sel == "FM"){
+      
+      IC <- sapply(1:R_max, function(r){
+        log(1 / length(unlist(Ly)) * sum(sapply(1:n, function(i) sum((Ly[[i]] - matrix(Phi[dat_t$time_mark[[i]],1:r], nrow = length(dat_t$time_mark[[i]])) %*% diag(Rho[1:r], nrow = r) %*% c(A[i,1:r])) ^ 2)))) + r * log(min(n, m)) / min(n, m)
+      })
+      
+      if(is.numeric(R_pre) == T){
+        R <- R_pre
+      }else{
+        R <- which.min(IC)
+        R <- max(R, 2)
+      }
+      
+      W <- Phi[,1:R]
+      fit <- qr(W)
+      Fac_serial <- qr.Q(fit) * 10
+      
+      Loading <- A[,1:R] %*% diag(Rho[1:R], nrow = R) %*% t(qr.R(fit) / 10)
+      
+      fit <- qr(Loading)
+      Loading <- qr.Q(fit)
+      
+      Fac_serial <- Fac_serial %*% t(qr.R(fit))
+      
+      return(list(
+        Loading = Loading,
+        Fac_serial = Fac_serial,
+        Rho = Rho,
+        A = A,
+        Phi = Phi, 
+        R = R,
+        dat_t  = dat_t
+      ))
+      
+    }else if(num_sel == "FD"){
+      
+      IC <- sapply(1:R_max, function(r){
+        sum(sapply(1:n, function(i) length(Ly[[i]]) * log(mean((Ly[[i]] - matrix(Phi[dat_t$time_mark[[i]],1:r], nrow = length(dat_t$time_mark[[i]])) %*% diag(Rho[1:r], nrow = r) %*% c(A[i,1:r])) ^ 2)))) + 2 * n * r
+      })
+      
+      if(is.numeric(R_pre) == T){
+        R <- R_pre
+      }else{
+        R <- which.min(IC)
+        R <- max(R, 2)
+      }
+      
+      W <- Phi[,1:R]
+      fit <- qr(W)
+      Intric_basis <- qr.Q(fit) * 10
+      
+      Score <- A[,1:R] %*% diag(Rho[1:R], nrow = R) %*% t(qr.R(fit) / 10)
+      
+      W <- Phi
+      fit <- qr(W)
+      Intric_basis <- qr.Q(fit) * 10
+      
+      return(list(
+        Intric_basis = Intric_basis,
+        Score = Score,
+        Rho = Rho,
+        A = A,
+        Phi = Phi, 
+        R = R,
+        dat_t  = dat_t
+      ))
+      
     }else{
-      R <- which.min(IC)
-      R <- max(R, 2)
+      
+      IC <- Rho[-R_max] / Rho[-1] 
+      
+      if(is.numeric(R_pre) == T){
+        R <- R_pre
+      }else{
+        R <- which.max(IC)
+      }
+      
+      return(list(
+        Rho = Rho,
+        A = A,
+        Phi = Phi, 
+        R = R,
+        dat_t  = dat_t
+      ))
     }
-    
-    W <- Phi[,1:R]
-    fit <- qr(W)
-    Intric_basis <- qr.Q(fit) * 10
-    
-    Score <- A[,1:R] %*% diag(Rho[1:R], nrow = R) %*% t(qr.R(fit) / 10)
-    
-    W <- Phi
-    fit <- qr(W)
-    Intric_basis <- qr.Q(fit) * 10
-    
-    return(list(
-      Intric_basis = Intric_basis,
-      Score = Score,
-      Rho = Rho,
-      A = A,
-      Phi = Phi, 
-      R = R,
-      dat_t  = dat_t
-    ))
-    
-  }else{
-    
-    IC <- Rho[-R_max] / Rho[-1] 
-    
-    if(is.numeric(R_pre) == T){
-      R <- R_pre
-    }else{
-      R <- which.max(IC)
-    }
-    
-    return(list(
-      Rho = Rho,
-      A = A,
-      Phi = Phi, 
-      R = R,
-      dat_t  = dat_t
-    ))
   }
 }
 
@@ -1318,7 +1336,12 @@ MedImpute <- function(dat, K, time_grid, h, alpha){
       loss <- sapply((1:n)[-i], function(ii){
         sum(((W[i,] -  W[ii,]) * (1 - alpha)) ^ 2)
       })
-      mark <- ((1:n)[-i])[order(loss, decreasing = F)[1:K]]
+      if(length(loss) >= K){
+        mark <- ((1:n)[-i])[order(loss, decreasing = F)[1:K]]
+      }else{
+        mark <- ((1:n)[-i])[order(loss, decreasing = F)[1:length(loss)]]
+      }
+      
       
       Z[i,mark] <- 1
       Z[i,-mark] <- 0
