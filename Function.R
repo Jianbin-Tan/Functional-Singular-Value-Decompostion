@@ -365,6 +365,10 @@ initize_FSVD <- function(Ly, Lt, time_grid, dat_t, Y){
   
   a <- svd(Y)[[3]][,1]
   
+  if(sum(a == 0) != 0){
+    a <- rep(sqrt(1/ length(a)), length(a))
+  }
+  
   a_coef <- sapply(1:length(dat_t$sam_mark), function(k) a[dat_t$sam_mark[k]])
   Y <- unlist(Ly)
   fit <- smooth.spline(x = dat_t$time_sam_tol, y = Y / a_coef, w = a_coef ^ 2 / dat_t$sam_num, 
@@ -496,13 +500,13 @@ FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
   
   # Condition check
   if (length(time_grid_mat) < 5) {
-    warning("Warning: Total number of the unique time points is less than 5.")
+    warning("Warning: The number of unique time points across subjects is less than 5.")
   }else if (sum(sapply(1:n, function(i) length(Ly[[i]])) < 2) > 0){
     warning("Warning: The number of non-zero observations in Ly[[i]] is less than 2 for some subjects.")
   }else{
     
     if(sum((sapply(1:n, function(i) mean(Ly[[i]]^2)) - 1) <= 0.3) != n){
-      warning("Warning: The Euclidean norm of Ly[[i]] is not close to 1 for some subjects.")
+      warning("Warning: The Euclidean norm of Ly[[i]] deviates from 1 for some subjects. Please do normalization.")
     }
     
     tran_datset <- lapply(1:5, function(k){
@@ -1035,13 +1039,7 @@ sim_func_fac <- function(basis_num, n, obs_point, rat, seed){
       }
     })
   })
-  
-  # Y <- sapply(1:n, function(i){
-  #   x <- rep(NA, length(time_grid))
-  #   mark <- sapply(1:length(Lt[[i]]), function(k) which.min(abs(Lt[[i]][k] - time_grid)))
-  #   x[mark] <- Ly[[i]]
-  #   return(x)
-  # })
+
   Y <- fill.nuclear(Y)$X
   
   ## SVD
@@ -1289,12 +1287,7 @@ sim_func_reg <- function(basis_num, n, obs_point, rat, norm, seed){
          times.for.fit.grid = time_grid,
          basis.method = 2
          )
-  # fit_PFR <- pfr(Z ~ lf(X = fit_smo, argvals = time_grid,  k = 10, bs = "ps"), method = "GCV.Cp")
   fit_beta_PFR <-  summary(fit_PFR)$functional.covariates.table[,2]
-  # plot(1:101, dat_col$beta)
-  # plot(1:101, fit_beta_FSVD)
-  # plot(1:101, fit_beta_FPCA)
-  # plot(1:101, fit_beta_PFR)
   
   return(list(dat_col = dat_col,
               fit_beta_FSVD = fit_beta_FSVD,
@@ -1366,3 +1359,7 @@ MedImpute <- function(dat, K, time_grid, h, alpha){
 
 ## Jame's functional clustering method
 source("Jame_FC.R")
+
+## VAE 
+source("VAE_function.R")
+

@@ -78,7 +78,7 @@ dat_plot_fsvd <- data.frame(
     return(val)
   })), 
   Feature = c(sapply(1:n, function(i) rep(feature_id[i], length(time_grid)))),
-  Estimation = c(sapply(1:n, function(i) (fit_FSVD$Fac_serial[,1:fit_FSVD$R] %*% c(fit_FSVD$Loading[i,1:fit_FSVD$R]))))
+  Estimation = c(sapply(1:n, function(i) (fit_FSVD$Fac_serial %*% c(fit_FSVD$Loading[i,]))))
 )
 
 p_1 <- ggplot(dat_plot_fsvd) + 
@@ -100,45 +100,7 @@ p_1 <- ggplot(dat_plot_fsvd) +
 p_1
 ggsave(paste0("Figure/", "fit_dat_FSVD", ".pdf"), width = 7, height = 6, dpi = 300)
 
-## Smoothing spline
-fit_smo <- lapply(1:n, function(i){
-  fit <- smooth.spline(x = Lt[[i]], y = Ly[[i]], cv = F, all.knots = T)
-  y <- predict(fit, x = time_grid)$y
-  return(as.numeric(y))
-})
-
-dat_plot_smo <- data.frame(
-  Time = rep((time_grid * (mean_t[2] - mean_t[1]) + mean_t[1]) / 60, n),
-  Value = c(sapply(1:n, function(i){
-    val <- rep(NA, length(time_grid))
-    val[time_mark[[i]]] <- Ly[[i]]
-    return(val)
-  })), 
-  Feature = c(sapply(1:n, function(i) rep(feature_id[i], length(time_grid)))),
-  Estimation = c(sapply(1:n, function(i) fit_smo[[i]]))
-)
-
-p_2 <- ggplot(dat_plot_smo) + 
-  geom_point(aes(x = Time, y = Value), color = "orange") + 
-  geom_line(aes(x = Time, y = Estimation), size = 0.5, color = "blue") + 
-  facet_wrap(.~Feature, scales = "free_y", ncol = 3) +
-  labs(x = "Time (min)", y = "Value",
-       title = "",
-       colour = "", fill = "", linetype = "") + 
-  # scale_color_manual(values = c("blue")) +
-  # scale_linetype_manual(values = c(2, 1)) + 
-  # theme_bw(base_family = "Times") +
-  theme_bw(base_family = "Times") +
-  theme(panel.grid.minor = element_blank(),
-        legend.position = "top",
-        panel.border = element_blank(),
-        # text = element_text(family = "STHeiti"),
-        plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 0))  
-p_2
-ggsave(paste0("Figure/", "fit_dat_smo", ".pdf"), width = 7, height = 6, dpi = 300)
-
-## Matrix completion
+## VAE
 time_grid_mat <- unique(unlist(Lt))
 dat_raw <- sapply(1:n, function(i){
   mark <- sapply(1:length(Lt[[i]]), function(k) which(Lt[[i]][k] == time_grid_mat))
@@ -147,6 +109,46 @@ dat_raw <- sapply(1:n, function(i){
   return(A)
 })
 
+VAE_imp <- impute_vae(dat_raw)
+
+dat_plot_VAE <- data.frame(
+  Time = rep((rep(time_grid * (mean_t[2] - mean_t[1]) + mean_t[1], n) / 60), 1),
+  Value = rep(c(sapply(1:n, function(i){
+    val <- rep(NA, length(time_grid))
+    val[time_mark[[i]]] <- Ly[[i]]
+    return(val)
+  })), 1), 
+  Feature = rep(c(sapply(1:n, function(i) rep(feature_id[i], length(time_grid)))), 1),
+  Estimation = c(c(sapply(1:n, function(i){
+    val <- rep(NA, length(time_grid))
+    time_miss <- time_grid_mat[is.na(dat_raw[,i])]
+    mark <- sapply(1:length(time_miss), function(k) which(time_miss[k] == time_grid))
+    val[mark] <- VAE_imp[is.na(dat_raw[,i]),i]
+    return(val)
+  })))
+)
+
+p_2 <- ggplot(dat_plot_VAE) + 
+  geom_point(aes(x = Time, y = Value), color = "orange") + 
+  geom_point(aes(x = Time, y = Estimation), size = 0.7, color = "blue") + 
+  facet_wrap(.~Feature, scales = "free_y", ncol = 3) +
+  labs(x = "Time (min)", y = "Value",
+       title = "",
+       colour = "", fill = "", linetype = "") + 
+  # scale_color_manual(values = c("blue")) +
+  # scale_linetype_manual(values = c(2, 1)) + 
+  theme_bw(base_family = "Times") +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "top",
+        panel.border = element_blank(),
+        # text = element_text(family = "STHeiti"),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 0))  
+p_2
+ggsave(paste0("Figure/", "fit_dat_VAE", ".pdf"), width = 7, height = 6, dpi = 300)
+
+
+## Matrix completion
 SVD_imp <-  fill.nuclear(dat_raw)
 
 dat_plot_mat <- data.frame(
@@ -227,24 +229,24 @@ p_4
 ggsave(paste0("Figure/", "fit_dat_KNN", ".pdf"), width = 7, height = 6, dpi = 300)
 
 ## Total plot
-dat_plot_tol <- rbind(dat_plot_fsvd, dat_plot_mat, dat_plot_smo, dat_plot_knn)
+dat_plot_tol <- rbind(dat_plot_fsvd, dat_plot_mat, dat_plot_VAE, dat_plot_knn)
 
 num <- nrow(dat_plot_fsvd)
 dat_plot_tol <- data.frame(dat_plot_tol, Method = c(rep("FSVD", num),
                                             rep("Matrix completion", num),
-                                            rep("Smoothing spline", num),
+                                            rep("VAE", num),
                                             rep("K-NN", num)
 ))
 dat_plot_tol <- data.frame(dat_plot_tol, Curve = c(rep(1, num),
                                                   rep(NA, num),
-                                                  rep(1, num),
+                                                  rep(NA, num),
                                                   rep(NA, num)),
                        Point = c(rep(NA, num),
                                  rep(1, num),
-                                 rep(NA, num),
+                                 rep(1, num),
                                  rep(1, num)))
 
-dat_plot_tol$Method <- factor(dat_plot_tol$Method, levels = c("Matrix completion", 'Smoothing spline', 'K-NN', "FSVD"))
+dat_plot_tol$Method <- factor(dat_plot_tol$Method, levels = c("Matrix completion", 'VAE', 'K-NN', "FSVD"))
 
 ## Figure A
 dat_plot <- dat_plot_tol[(dat_plot_tol$Feature == feature_id[1]) |
@@ -259,11 +261,11 @@ dat_plot$Estimation <- dat_plot$Estimation * dat_plot$Point
 
 dat_plot$Estimation[dat_plot$Method == "K-NN"][dat_plot$Estimation[dat_plot$Method == "K-NN"] < 0.5] <- NA
 
-label <- (dat_plot$Method == "Smoothing spline") & (dat_plot$Feature == "Arterial Blood Pressure systolic")
-dat_plot$Estimation_Curve[label][dat_plot$Estimation_Curve[label] < 0.5] <- NA
-
-label <- (dat_plot$Method == "Smoothing spline") & (dat_plot$Feature == "Respiratory Rate")
-dat_plot$Estimation_Curve[label][dat_plot$Estimation_Curve[label] > 1.6] <- NA
+# label <- (dat_plot$Method == "Smoothing spline") & (dat_plot$Feature == "Arterial Blood Pressure systolic")
+# dat_plot$Estimation_Curve[label][dat_plot$Estimation_Curve[label] < 0.5] <- NA
+# 
+# label <- (dat_plot$Method == "Smoothing spline") & (dat_plot$Feature == "Respiratory Rate")
+# dat_plot$Estimation_Curve[label][dat_plot$Estimation_Curve[label] > 1.6] <- NA
 
 label <- (dat_plot$Method == "Matrix completion") & (dat_plot$Feature != "Base Excess")
 dat_plot$Estimation[label][dat_plot$Estimation[label] < 0.4] <- NA
@@ -310,14 +312,6 @@ dat_plot <- dat_plot_tol[(dat_plot_tol$Feature == feature_id[7]) |
                          ,]
 dat_plot$Estimation_Curve <- dat_plot$Curve * dat_plot$Estimation
 dat_plot$Estimation <- dat_plot$Estimation * dat_plot$Point
-
-# dat_plot$Estimation[dat_plot$Method == "K-NN"][dat_plot$Estimation[dat_plot$Method == "K-NN"] < 0.5] <- NA
-# 
-label <- (dat_plot$Method == "Smoothing spline") & (dat_plot$Feature == "Glucose")
-dat_plot$Estimation_Curve[label][dat_plot$Estimation_Curve[label] < 0.05] <- NA
-
-label <- (dat_plot$Method == "Smoothing spline") & (dat_plot$Feature == "Lactate")
-dat_plot$Estimation_Curve[label][dat_plot$Estimation_Curve[label] < 0.4] <- NA
 
 p_fit_2 <- ggplot(dat_plot) + 
   geom_point(aes(x = Time, y = Value), color = "orange", size = 1.2) + 
