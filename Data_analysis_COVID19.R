@@ -101,6 +101,99 @@ p_1 <- ggplot(data = NULL) +
 p_1
 
 ################################################################################
+## FSVD implementation
+fit_FSVD <- FSVD(Ly, Lt, R_max = 4, R_pre = NULL, num_sel = "FD")
+
+## Plot
+### Intrinsic basis function
+fit_FSVD$Intric_basis <- sapply(1:4, function(k)  fit_FSVD$Intric_basis[,k] * ifelse(fit_FSVD$Intric_basis[2,k] > fit_FSVD$Intric_basis[1,k], 1, -1))
+dat_plot <- data.frame(
+  time = rep(seq(0, 66, length.out = 101), 4),
+  value = c(fit_FSVD$Intric_basis),
+  mark = c(rep(paste0("1st IBF"), 101), 
+           rep(paste0("2nd IBF"), 101),
+           rep(paste0("3rd IBF"), 101),
+           rep(paste0("4th IBF"), 101))
+)
+
+dat_plot$mark <- as.factor(dat_plot$mark)
+
+p_2 <- ggplot(dat_plot) + 
+  geom_line(aes(x = time, y = value, group = mark, color = mark), size = 0.7) +
+  labs(x = "Day since 20+ cases", y = "Value of functions",
+       title = "(B)",
+       colour = "", fill = "", linetype = "") +
+  theme_bw(base_family = "Times") +
+  scale_x_continuous(labels = c(0, 20, 40, 60)) +
+  # scale_x_continuous(breaks = seq(0, 1, length.out = 7)) +
+  ylim(c(-2.5, 2.5)) +
+  # annotate("text", x = 0, y = 2, label = c(paste0("Cross-validation error: ", round(error[2], 3))), hjust = 0, vjust = 0, size = 3.5) +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "top",
+        panel.border = element_blank(),
+        # text = element_text(family = "STHeiti"),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 0)) +
+  # scale_linetype_manual(values = c(1, 2, 3, 4)) +
+  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3')) 
+p_2
+
+# FPCA implementation
+fit_FPCA <- FPCA(Ly, Lt, optns = list(error = T, nRegGrid = 101, 
+                                      methodBwCov = "GCV",
+                                      methodMuCovEst = "smooth",
+                                      methodBwCov = "GCV",
+                                      methodXi = "CE",
+                                      methodSelectK = "AIC"
+))
+
+fit_FPCA$phi <- sapply(1:3, function(k)  fit_FPCA$phi[,k] * ifelse(fit_FPCA$phi[2,k] > fit_FPCA$phi[1,k], 1, -1))
+
+dat_plot <- data.frame(
+  time = rep(seq(0, 66, length.out = 101), 4),
+  value = c(fit_FPCA$mu / sqrt(sum(fit_FPCA$mu ^ 2 * 0.01)), c(fit_FPCA$phi)),
+  mark = c(rep(paste0(" MF"), 101), 
+           rep(paste0("1st EF"), 101),
+           rep(paste0("2nd EF"), 101),
+           rep(paste0("3rd EF"), 101))
+)
+
+dat_plot$mark <- as.factor(dat_plot$mark)
+
+p_3 <- ggplot(dat_plot) + 
+  geom_line(aes(x = time, y = value, group = mark, color = mark), size = 0.7) +
+  labs(x = "Day since 20+ cases", y = "Value of functions",
+       title = "(C)",
+       colour = "", fill = "", linetype = "") +
+  # annotate("text", x = 0, y = 2, label = c(paste0("Cross-validation error: ", round(error[1], 3))), hjust = 0, vjust = 0, size = 3.5) +
+  theme_bw(base_family = "Times") +
+  scale_x_continuous(labels = c(0, 20, 40, 60)) +
+  ylim(c(-2.5, 2.5)) +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "top",
+        panel.border = element_blank(),
+        # text = element_text(family = "STHeiti"),
+        plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 0)) +
+  # scale_linetype_manual(values = c(1, 2, 3, 4)) +
+  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3')) 
+p_3
+
+## Combine figures
+A <- matrix(c(1, 2, 3,
+              1, 2, 3,
+              1, 2, 3,
+              1, 2, 3,
+              1, 2, 3,
+              1, 2, 3
+              ), byrow = T, nrow = 6)
+
+gridExtra::grid.arrange(p_1, p_2, p_3, ncol = 3, layout_matrix = A)
+p <- gridExtra::arrangeGrob(p_1, p_2, p_3, ncol = 3, layout_matrix = A) 
+
+ggsave(paste0("Figure/", "curve_analysis", ".pdf"), p, width = 11, height = 3.5, dpi = 300)
+
+################################################################################
 # CV for functional completion
 time_grid <- seq(0, 1, length.out = 101)
 
@@ -162,97 +255,65 @@ error <- apply(CV_error, c(2), mean)
 (error[1] - error[2]) / error[1]
 
 ################################################################################
-## FSVD implementation
-fit_FSVD <- FSVD(Ly, Lt, R_max = 4, R_pre = NULL, num_sel = "FD")
+# CV for functional regression
+time_grid <- seq(0, 1, length.out = 101)
+Z <- sapply(1:n, function(i) mean(Ly[[i]][which(Lt[[i]] >= 60 / 67)], rm.na = T))
+mark <- which(is.na(Z) == F)
+Ly_ref <- lapply(mark, function(i) Ly[[i]][which(Lt[[i]] < 60 / 67)])
+Lt_ref <- lapply(mark, function(i) Lt[[i]][which(Lt[[i]] < 60 / 67)])
 
-## Plot
-### Intrinsic basis function
-fit_FSVD$Intric_basis <- sapply(1:4, function(k)  fit_FSVD$Intric_basis[,k] * ifelse(fit_FSVD$Intric_basis[2,k] > fit_FSVD$Intric_basis[1,k], 1, -1))
-dat_plot <- data.frame(
-  time = rep(seq(0, 66, length.out = 101), 4),
-  value = c(fit_FSVD$Intric_basis),
-  mark = c(rep(paste0("1st IBF"), 101), 
-           rep(paste0("2nd IBF"), 101),
-           rep(paste0("3rd IBF"), 101),
-           rep(paste0("4th IBF"), 101))
-)
+n_ref <- length(mark)
+Z <- Z[mark]
+max_t <- max(unique(unlist(Lt_ref)))
+min_t <- min(unique(unlist(Lt_ref)))
 
-dat_plot$mark <- as.factor(dat_plot$mark)
+Lt_ref <- lapply(1:n_ref, function(i) (Lt_ref[[i]] - min_t) / (max_t - min_t))
 
-p_2 <- ggplot(dat_plot) + 
-  geom_line(aes(x = time, y = value, group = mark, color = mark), size = 0.7) +
-  labs(x = "Day since 20+ cases", y = "Value of functions",
-       title = "(B)",
-       colour = "", fill = "", linetype = "") +
-  theme_bw(base_family = "Times") +
-  scale_x_continuous(labels = c(0, 20, 40, 60)) +
-  # scale_x_continuous(breaks = seq(0, 1, length.out = 7)) +
-  ylim(c(-2.5, 2.5)) +
-  annotate("text", x = 0, y = 2, label = c(paste0("Cross-validation error: ", round(error[2], 3))), hjust = 0, vjust = 0, size = 3.5) +
-  theme(panel.grid.minor = element_blank(),
-        legend.position = "top",
-        panel.border = element_blank(),
-        # text = element_text(family = "STHeiti"),
-        plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 0)) +
-  # scale_linetype_manual(values = c(1, 2, 3, 4)) +
-  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3')) 
-p_2
+pred_error_FSVD <- vector()
+pred_error_FPCA <- vector()
 
-# FPCA implementation
-fit_FPCA <- FPCA(Ly, Lt, optns = list(error = T, nRegGrid = 101, 
-                                      methodBwCov = "GCV",
-                                      methodMuCovEst = "smooth",
-                                      methodBwCov = "GCV",
-                                      methodXi = "CE",
-                                      methodSelectK = "AIC"
-))
+for(i in 1:n_ref){
+  
+  Ly_train <- lapply((1:n_ref)[-i], function(h) Ly_ref[[h]])
+  Lt_train <- lapply((1:n_ref)[-i], function(h) Lt_ref[[h]])
+  Z_train <- Z[-i]
+  
+  ## FSVD
+  fit_FSVD <- FSVD(Ly_train, Lt_train, R_max = 4, R_pre = 4, num_sel = "FD", time_grid = time_grid)
+  fit_ceof <- lm(Z_train ~ fit_FSVD$Score)
+  fit_beta_FSVD <- fit_FSVD$Intric_basis %*% fit_ceof$coefficients[-1]
+  
+  # fit <- smooth.spline(x = Lt_ref[[i]], y = Ly_ref[[i]], all.knots = T)
+  # fit_value <- predict(fit, time_grid)$y
+  time_mark <- sapply(1:length(Lt_ref[[i]]), function(k) which.min(abs(Lt_ref[[i]][k] - time_grid)))
+  fit <- lm(Ly_ref[[i]] ~ fit_FSVD$Intric_basis[time_mark,] + 0)
+  fit_value <- fit_FSVD$Intric_basis %*% fit$coefficient
+  pred_error_FSVD[i] <- (mean(fit_beta_FSVD * fit_value) + fit_ceof$coefficients[1] - Z[i]) ^ 2
+  
+  # FPCA
+  X <- list()
+  X$X <- list(Ly = Ly_train, Lt = Lt_train)
+  X_test <- list()
+  X_test$X <- list(Ly = list(Ly_ref[[i]]), Lt = list(Lt_ref[[i]]))
+  fit_FPCA <- FLM(Y = Z_train, X = X, XTest = X_test, optnsListY = NULL, optnsListX = list(error = T, nRegGrid = 101, 
+                                                                                           methodMuCovEst = "smooth",
+                                                                                           methodBwCov = "GCV",
+                                                                                           methodSelectK = "AIC",
+                                                                                           methodXi = "CE",
+                                                                                           methodSelectK = 3,
+                                                                                           dataType = 'Sparse'
+  ), nPerm = NULL)
+  fit_beta_FPCA <- fit_FPCA$betaList[[1]]
+  pred_error_FPCA[i] <- abs(fit_FPCA$yPred - Z[i]) ^ 2
+  
+  print(c(i, pred_error_FSVD[i], pred_error_FPCA[i]))
+}
 
-fit_FPCA$phi <- sapply(1:3, function(k)  fit_FPCA$phi[,k] * ifelse(fit_FPCA$phi[2,k] > fit_FPCA$phi[1,k], 1, -1))
 
-dat_plot <- data.frame(
-  time = rep(seq(0, 66, length.out = 101), 4),
-  value = c(fit_FPCA$mu / sqrt(sum(fit_FPCA$mu ^ 2 * 0.01)), c(fit_FPCA$phi)),
-  mark = c(rep(paste0(" MF"), 101), 
-           rep(paste0("1st EF"), 101),
-           rep(paste0("2nd EF"), 101),
-           rep(paste0("3rd EF"), 101))
-)
+mean(pred_error_FPCA)
 
-dat_plot$mark <- as.factor(dat_plot$mark)
-
-p_3 <- ggplot(dat_plot) + 
-  geom_line(aes(x = time, y = value, group = mark, color = mark), size = 0.7) +
-  labs(x = "Day since 20+ cases", y = "Value of functions",
-       title = "(C)",
-       colour = "", fill = "", linetype = "") +
-  annotate("text", x = 0, y = 2, label = c(paste0("Cross-validation error: ", round(error[1], 3))), hjust = 0, vjust = 0, size = 3.5) +
-  theme_bw(base_family = "Times") +
-  scale_x_continuous(labels = c(0, 20, 40, 60)) +
-  ylim(c(-2.5, 2.5)) +
-  theme(panel.grid.minor = element_blank(),
-        legend.position = "top",
-        panel.border = element_blank(),
-        # text = element_text(family = "STHeiti"),
-        plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 0)) +
-  # scale_linetype_manual(values = c(1, 2, 3, 4)) +
-  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3')) 
-p_3
-
-## Combine figures
-A <- matrix(c(1, 2, 3,
-              1, 2, 3,
-              1, 2, 3,
-              1, 2, 3,
-              1, 2, 3,
-              1, 2, 3
-              ), byrow = T, nrow = 6)
-
-gridExtra::grid.arrange(p_1, p_2, p_3, ncol = 3, layout_matrix = A)
-p <- gridExtra::arrangeGrob(p_1, p_2, p_3, ncol = 3, layout_matrix = A) 
-
-ggsave(paste0("Figure/", "curve_analysis", ".pdf"), p, width = 11, height = 3.5, dpi = 300)
+### Reduced percentage
+(mean(pred_error_FPCA) - mean(pred_error_FSVD)) / mean(pred_error_FPCA)
 
 ################################################################################
 # Functional clustering via FSVD

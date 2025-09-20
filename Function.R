@@ -505,10 +505,6 @@ FSVD <- function(Ly, Lt, R_max, R_pre, num_sel,
     warning("Warning: The number of non-zero observations in Ly[[i]] is less than 2 for some subjects.")
   }else{
     
-    if(sum((sapply(1:n, function(i) mean(Ly[[i]]^2)) - 1) <= 0.3) != n){
-      warning("Warning: The Euclidean norm of Ly[[i]] deviates from 1 for some subjects. Please do normalization.")
-    }
-    
     tran_datset <- lapply(1:5, function(k){
       mark <- lapply(1:n, function(i){
         if(k <= length(Lt[[i]])){
