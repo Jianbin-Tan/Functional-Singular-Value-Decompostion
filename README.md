@@ -1,6 +1,6 @@
 # Functional Singular Value Decomposition (FSVD)
 
-This repository contains the data and code scripts for the paper "Functional Singular Value Decomposition" by Jianbin Tan, Pixu Shi, and Anru R. Zhang. This paper is accessible at [Arxiv](https://arxiv.org/abs/2410.03619).
+This repository contains the data and code scripts for the paper "Functional Singular Value Decomposition" by Jianbin Tan, Pixu Shi, and Anru R. Zhang.
 
 ## 1. Data
 
@@ -16,7 +16,7 @@ Additional information and documentation are also provided for these datasets.
 
 ## 2. Code
 ### Overview
-The code in this repository demonstrates the application of our proposed FSVD methodology to various tasks, such as optimal dimension reduction, functional clustering, functional regression, factor model, and functional completion. We benchmark our method against several prominent approaches:
+The code in this repository demonstrates the application of our proposed FSVD methodology to various tasks, such as optimal dimension reduction, functional clustering, functional regression, factor model, and data completion. We benchmark our method against several prominent approaches:
 - [Functional principal component analysis (FPCA)](https://cran.r-project.org/web/packages/fdapace/)
 - [Identification of substructures in longitudinal data through functional clustering](https://cran.r-project.org/web/packages/fdapace/)
 - [Clustering for sparsely sampled functional data](https://www.tandfonline.com/doi/abs/10.1198/016214503000189)
@@ -24,11 +24,12 @@ The code in this repository demonstrates the application of our proposed FSVD me
 - [Penalized functional regression](https://www.tandfonline.com/doi/abs/10.1198/jcgs.2010.10007?casa_token=2eQCx5RtRgYAAAAA:Wrh0wz1Qs2MemK1Q4ysRWUQ1uiop5I4lUOuLnZSlbJQZF4Fqc72Nggw3Cb-lSvxmjUE-MghFS6cHYA)
 - [Factor models for high-dimensional time series](https://cran.r-project.org/web/packages/HDTSA/index.html)
 - [Matrix completion](https://cran.r-project.org/web/packages/filling/index.html)
+- [Variational autoencoders](https://doi.org/10.1016/j.patcog.2020.107501)
 - [Predictive methods to missing data imputation](https://www.jmlr.org/papers/v18/17-073.html)
 - Singular value decomposition (SVD)
 - Smoothing spline
 
 ### Reproducibility
-- **Simulation Results**: The results presented in Section 5 can be reproduced by running the script `Simulation_result.R`.
-- **COVID-19 Dynamic Data Analysis**: The analysis in Section 6.1 can be performed using `Data_analysis_COVID19.R`.
-- **Longitudinal EHR Analysis**: The analysis in Section 6.2 can be conducted using `Data_analysis_EHR.R`.
+- **Simulation Results**: The results presented in Section 6 can be reproduced by running the script `Simulation_result.R`.
+- **COVID-19 Dynamic Data Analysis**: The analysis in Section 7 for the COVID-19 data can be performed using `Data_analysis_COVID19.R`.
+- **Longitudinal EHR Analysis**: The analysis in Section 7 for the EHR data can be conducted using `Data_analysis_EHR_whole.R` and `Data_analysis_EHR.R`.

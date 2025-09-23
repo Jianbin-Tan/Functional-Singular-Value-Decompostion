@@ -306,9 +306,8 @@ for(i in 1:n_ref){
   fit_beta_FPCA <- fit_FPCA$betaList[[1]]
   pred_error_FPCA[i] <- abs(fit_FPCA$yPred - Z[i]) ^ 2
   
-  print(c(i, pred_error_FSVD[i], pred_error_FPCA[i]))
+  # print(c(i, pred_error_FSVD[i], pred_error_FPCA[i]))
 }
-
 
 mean(pred_error_FPCA)
 
