@@ -13,7 +13,7 @@ n <- nrow(dat)
 region_name <- c("Luxembourg", "Iceland", "Ireland", "Switzerland", "Qatar",
                  "Belgium", "Spain", "Portugal", "Estonia", "Austria", "Italy",
                  "Norway", "Panama", "Netherlands", "Denmark", "Sweden", "Israel",
-                 "Slovenia", "France", "Serbia", "Finland", "Bahrain", "Germany", 
+                 "Slovenia", "France", "Serbia", "Finland", "Bahrain", "Germany",
                  "Czechia", "Croatia", "Chile", "Belarus", "United Kingdom", "Peru", "Iran",
                  "Romania", "Albania", "US", "Slovakia", "Canada", "Greece", "Saudi Arabia",
                  "Bulgaria", "Poland", "Kuwait", "United Arab Emirates", "Costa Rica", "Australia", "Russia",
@@ -22,7 +22,7 @@ region_name <- c("Luxembourg", "Iceland", "Ireland", "Switzerland", "Qatar",
                  "Malaysia", "Iraq", "Egypt", "Indonesia", "Taiwan*", "Thailand", "India", "Japan")
 
 mark <- sapply(1:length(region_name), function(k){
-  mark <- which(dat$Country.Region == region_name[k]) 
+  mark <- which(dat$Country.Region == region_name[k])
   if(length(mark) > 1){
     mark <- mark[which(dat$Province.State[mark] == "")]
     if(length(mark) == 0){
@@ -46,7 +46,7 @@ for(i in 1:n){
   num <- unlist(dat[i,5:ncol(dat)])
   num <- num[is.na(num) == F]
   num <- log10(num[num >= 20] / Population[i] * 10 ^ 6)[1:67]
-  
+
   Ly[[i]] <- c(unique(num))
   Lt[[i]] <- c(sapply(1:length(Ly[[i]]), function(k){
     min(which(Ly[[i]][k] == num))
@@ -68,7 +68,7 @@ dat_plot <- as.data.frame(dat_plot)
 select_coun <- c("Malaysia", "US", "Thailand", "Luxembourg", "Qatar", "Taiwan*")
 mark <- sapply(1:length(select_coun), function(k) which(region_name == select_coun[k]))
 
-p_1 <- ggplot(data = NULL) + 
+p_1 <- ggplot(data = NULL) +
   geom_line(data = dat_plot, aes(x = time, y = value, group = Region), color = "gray") +
   geom_line(aes(x = Lt[[mark[1]]] * mean_t[2], y = Ly[[mark[1]]])) +
   geom_point(aes(x = Lt[[mark[1]]] * mean_t[2], y = Ly[[mark[1]]], color = "Observed case count"), size = 0.5) +
@@ -110,7 +110,7 @@ fit_FSVD$Intric_basis <- sapply(1:4, function(k)  fit_FSVD$Intric_basis[,k] * if
 dat_plot <- data.frame(
   time = rep(seq(0, 66, length.out = 101), 4),
   value = c(fit_FSVD$Intric_basis),
-  mark = c(rep(paste0("1st IBF"), 101), 
+  mark = c(rep(paste0("1st IBF"), 101),
            rep(paste0("2nd IBF"), 101),
            rep(paste0("3rd IBF"), 101),
            rep(paste0("4th IBF"), 101))
@@ -118,7 +118,7 @@ dat_plot <- data.frame(
 
 dat_plot$mark <- as.factor(dat_plot$mark)
 
-p_2 <- ggplot(dat_plot) + 
+p_2 <- ggplot(dat_plot) +
   geom_line(aes(x = time, y = value, group = mark, color = mark), size = 0.7) +
   labs(x = "Day since 20+ cases", y = "Value of functions",
        title = "(B)",
@@ -135,11 +135,11 @@ p_2 <- ggplot(dat_plot) +
         plot.title = element_text(hjust = 0.5),
         axis.text.x = element_text(angle = 0)) +
   # scale_linetype_manual(values = c(1, 2, 3, 4)) +
-  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3')) 
+  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3'))
 p_2
 
 # FPCA implementation
-fit_FPCA <- FPCA(Ly, Lt, optns = list(error = T, nRegGrid = 101, 
+fit_FPCA <- FPCA(Ly, Lt, optns = list(error = T, nRegGrid = 101,
                                       methodBwCov = "GCV",
                                       methodMuCovEst = "smooth",
                                       methodBwCov = "GCV",
@@ -152,7 +152,7 @@ fit_FPCA$phi <- sapply(1:3, function(k)  fit_FPCA$phi[,k] * ifelse(fit_FPCA$phi[
 dat_plot <- data.frame(
   time = rep(seq(0, 66, length.out = 101), 4),
   value = c(fit_FPCA$mu / sqrt(sum(fit_FPCA$mu ^ 2 * 0.01)), c(fit_FPCA$phi)),
-  mark = c(rep(paste0(" MF"), 101), 
+  mark = c(rep(paste0(" MF"), 101),
            rep(paste0("1st EF"), 101),
            rep(paste0("2nd EF"), 101),
            rep(paste0("3rd EF"), 101))
@@ -160,7 +160,7 @@ dat_plot <- data.frame(
 
 dat_plot$mark <- as.factor(dat_plot$mark)
 
-p_3 <- ggplot(dat_plot) + 
+p_3 <- ggplot(dat_plot) +
   geom_line(aes(x = time, y = value, group = mark, color = mark), size = 0.7) +
   labs(x = "Day since 20+ cases", y = "Value of functions",
        title = "(C)",
@@ -176,7 +176,7 @@ p_3 <- ggplot(dat_plot) +
         plot.title = element_text(hjust = 0.5),
         axis.text.x = element_text(angle = 0)) +
   # scale_linetype_manual(values = c(1, 2, 3, 4)) +
-  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3')) 
+  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3'))
 p_3
 
 ## Combine figures
@@ -189,7 +189,7 @@ A <- matrix(c(1, 2, 3,
               ), byrow = T, nrow = 6)
 
 gridExtra::grid.arrange(p_1, p_2, p_3, ncol = 3, layout_matrix = A)
-p <- gridExtra::arrangeGrob(p_1, p_2, p_3, ncol = 3, layout_matrix = A) 
+p <- gridExtra::arrangeGrob(p_1, p_2, p_3, ncol = 3, layout_matrix = A)
 
 ggsave(paste0("Figure/", "curve_analysis", ".pdf"), p, width = 11, height = 3.5, dpi = 300)
 
@@ -218,12 +218,12 @@ CV_error <- sapply(1:cv, function(cv_num){
   Ly_tran <- lapply(1:n, function(i){
     Ly[[i]][sam_mark[[i]] != cv_num]
   })
-  
+
   Lt_tran <- lapply(1:n, function(i){
     Lt[[i]][sam_mark[[i]] != cv_num]
   })
-  
-  fit_FPCA <- FPCA(Ly_tran, Lt_tran, optns = list(error = T, nRegGrid = 101, 
+
+  fit_FPCA <- FPCA(Ly_tran, Lt_tran, optns = list(error = T, nRegGrid = 101,
                                                   methodBwCov = "GCV",
                                                   methodMuCovEst = "smooth",
                                                   # FVEthreshold = 0.95,
@@ -231,20 +231,20 @@ CV_error <- sapply(1:cv, function(cv_num){
                                                   methodXi = "CE",
                                                   methodSelectK = 3
   ))
-  
+
   fit_FSVD <- FSVD(Ly_tran, Lt_tran, R_max = 4, R_pre = 4, num_sel = "FD")
-  
+
   ## Error
-  err_fpca <-  sapply(1:n, function(i) 
-    sum((((fit_FPCA$phi %*% fit_FPCA$xiEst[i,] + fit_FPCA$mu)[time_mark[[i]]])[sam_mark[[i]] == cv_num] - 
+  err_fpca <-  sapply(1:n, function(i)
+    sum((((fit_FPCA$phi %*% fit_FPCA$xiEst[i,] + fit_FPCA$mu)[time_mark[[i]]])[sam_mark[[i]] == cv_num] -
            Ly[[i]][sam_mark[[i]] == cv_num]) ^ 2)
   )
-  
-  err_fsvd <-  sapply(1:n, function(i) 
-    sum(((((fit_FSVD$Intric_basis %*% (fit_FSVD$Score[i,]))[time_mark[[i]]])[sam_mark[[i]] == cv_num]) - 
+
+  err_fsvd <-  sapply(1:n, function(i)
+    sum(((((fit_FSVD$Intric_basis %*% (fit_FSVD$Score[i,]))[time_mark[[i]]])[sam_mark[[i]] == cv_num]) -
            Ly[[i]][sam_mark[[i]] == cv_num]) ^ 2)
   )
-  
+
   return(cbind(err_fpca = err_fpca,
                err_fsvd = err_fsvd))
 }, simplify = "array")
@@ -273,29 +273,27 @@ pred_error_FSVD <- vector()
 pred_error_FPCA <- vector()
 
 for(i in 1:n_ref){
-  
+
   Ly_train <- lapply((1:n_ref)[-i], function(h) Ly_ref[[h]])
   Lt_train <- lapply((1:n_ref)[-i], function(h) Lt_ref[[h]])
   Z_train <- Z[-i]
-  
+
   ## FSVD
   fit_FSVD <- FSVD(Ly_train, Lt_train, R_max = 4, R_pre = 4, num_sel = "FD", time_grid = time_grid)
   fit_ceof <- lm(Z_train ~ fit_FSVD$Score)
   fit_beta_FSVD <- fit_FSVD$Intric_basis %*% fit_ceof$coefficients[-1]
-  
-  # fit <- smooth.spline(x = Lt_ref[[i]], y = Ly_ref[[i]], all.knots = T)
-  # fit_value <- predict(fit, time_grid)$y
+
   time_mark <- sapply(1:length(Lt_ref[[i]]), function(k) which.min(abs(Lt_ref[[i]][k] - time_grid)))
   fit <- lm(Ly_ref[[i]] ~ fit_FSVD$Intric_basis[time_mark,] + 0)
   fit_value <- fit_FSVD$Intric_basis %*% fit$coefficient
   pred_error_FSVD[i] <- (mean(fit_beta_FSVD * fit_value) + fit_ceof$coefficients[1] - Z[i]) ^ 2
-  
+
   # FPCA
   X <- list()
   X$X <- list(Ly = Ly_train, Lt = Lt_train)
   X_test <- list()
   X_test$X <- list(Ly = list(Ly_ref[[i]]), Lt = list(Lt_ref[[i]]))
-  fit_FPCA <- FLM(Y = Z_train, X = X, XTest = X_test, optnsListY = NULL, optnsListX = list(error = T, nRegGrid = 101, 
+  fit_FPCA <- FLM(Y = Z_train, X = X, XTest = X_test, optnsListY = NULL, optnsListX = list(error = T, nRegGrid = 101,
                                                                                            methodMuCovEst = "smooth",
                                                                                            methodBwCov = "GCV",
                                                                                            methodSelectK = "AIC",
@@ -305,7 +303,7 @@ for(i in 1:n_ref){
   ), nPerm = NULL)
   fit_beta_FPCA <- fit_FPCA$betaList[[1]]
   pred_error_FPCA[i] <- abs(fit_FPCA$yPred - Z[i]) ^ 2
-  
+
   # print(c(i, pred_error_FSVD[i], pred_error_FPCA[i]))
 }
 
@@ -325,7 +323,7 @@ dat_plot <- data.frame(
   Country = c("Luxembourg", "Iceland", "Ireland", "Switzerland", "Qatar",
               "Belgium", "Spain", "Portugal", "Estonia", "Austria", "Italy",
               "Norway", "Panama", "Netherlands", "Denmark", "Sweden", "Israel",
-              "Slovenia", "France", "Serbia", "Finland", "Bahrain", "Germany", 
+              "Slovenia", "France", "Serbia", "Finland", "Bahrain", "Germany",
               "Czechia", "Croatia", "Chile", "Belarus", "United Kingdom", "Peru", "Iran",
               "Romania", "Albania", "United States", "Slovakia", "Canada", "Greece", "Saudi Arabia",
               "Bulgaria", "Poland", "Kuwait", "United Arab Emirates", "Costa Rica", "Australia", "Russia",
@@ -336,10 +334,10 @@ dat_plot <- data.frame(
 
 dat_plot$label <- factor(dat_plot$label)
 
-p_4 <- ggplot(dat_plot) + 
-  geom_point(aes(x = X, y = Y, color = label), size = 3) + 
+p_4 <- ggplot(dat_plot) +
+  geom_point(aes(x = X, y = Y, color = label), size = 3) +
   ggrepel::geom_text_repel(aes(x = X, y = Y, label = Country), size = 3,
-                           max.overlaps = getOption("ggrepel.max.overlaps", default = 5)) + 
+                           max.overlaps = getOption("ggrepel.max.overlaps", default = 5)) +
   labs(x = "Values of the 1st projected scores", y = "Values of the 2nd projected scores",
        title = "",
        colour = "", fill = "", linetype = "") +
@@ -351,8 +349,8 @@ p_4 <- ggplot(dat_plot) +
         panel.border = element_blank(),
         # text = element_text(family = "STHeiti"),
         plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 0)) + 
-  scale_color_manual(values = c('#fc8d62', 'blue')) 
+        axis.text.x = element_text(angle = 0)) +
+  scale_color_manual(values = c('#fc8d62', 'blue'))
 p_4
 
 dat_plot <- data.frame(
@@ -362,7 +360,7 @@ dat_plot <- data.frame(
   Country = c("Luxembourg", "Iceland", "Ireland", "Switzerland", "Qatar",
               "Belgium", "Spain", "Portugal", "Estonia", "Austria", "Italy",
               "Norway", "Panama", "Netherlands", "Denmark", "Sweden", "Israel",
-              "Slovenia", "France", "Serbia", "Finland", "Bahrain", "Germany", 
+              "Slovenia", "France", "Serbia", "Finland", "Bahrain", "Germany",
               "Czechia", "Croatia", "Chile", "Belarus", "United Kingdom", "Peru", "Iran",
               "Romania", "Albania", "United States", "Slovakia", "Canada", "Greece", "Saudi Arabia",
               "Bulgaria", "Poland", "Kuwait", "United Arab Emirates", "Costa Rica", "Australia", "Russia",
@@ -375,10 +373,10 @@ dat_plot$label <- factor(dat_plot$label)
 library(maps)
 world <- map_data("world")
 
-p_4 <- ggplot(data = NULL) + 
-  geom_polygon(data = world, aes(x = long, y = lat, group = group), fill = "gray") + 
+p_4 <- ggplot(data = NULL) +
+  geom_polygon(data = world, aes(x = long, y = lat, group = group), fill = "gray") +
   # coord_fixed(1.3) +
-  geom_point(data = dat_plot, aes(x = X, y = Y, color = label), size = 1.3) + 
+  geom_point(data = dat_plot, aes(x = X, y = Y, color = label), size = 1.3) +
   ggrepel::geom_text_repel(data = dat_plot, aes(x = X, y = Y, label = Country),
                            max.overlaps = getOption("ggrepel.max.overlaps", default = 10), size = 2.6) +
   labs(x = "", y = "",
@@ -399,8 +397,8 @@ p_4 <- ggplot(data = NULL) +
         # text = element_text(family = "STHeiti"),
         plot.title = element_text(hjust = 0.5),
         axis.text.x = element_blank(),
-        axis.text.y = element_blank()) + 
-  scale_color_manual(values = c('#fc8d62', 'blue')) 
+        axis.text.y = element_blank()) +
+  scale_color_manual(values = c('#fc8d62', 'blue'))
 p_4
 
 ggsave(paste0("Figure/", "Map_clu", ".pdf"), p_2, width = 7, height = 5, dpi = 300)
@@ -411,12 +409,12 @@ time_grid <- seq(0, 1, length.out = 101)
 mean_1 <- fit_clu_FSVD$fit_FSVD$Intric_basis %*% fit_clu_FSVD$mu[,1]
 mean_2 <- fit_clu_FSVD$fit_FSVD$Intric_basis %*% fit_clu_FSVD$mu[,2]
 
-dat_plot <- data.frame(time = rep(time_grid, 2) * 67, 
+dat_plot <- data.frame(time = rep(time_grid, 2) * 67,
                        val = c(mean_1, mean_2),
                        label = c(rep("Cluster 2", length(time_grid)), rep("Cluster 1", length(time_grid)))
 )
 
-p_5 <- ggplot(dat_plot) + 
+p_5 <- ggplot(dat_plot) +
   geom_line(aes(x = time, y = val, color = label), size = 1) +
   labs(x = "Day since 20+ cases", y = "Value of functions",
        title = "(E)",
@@ -429,7 +427,7 @@ p_5 <- ggplot(dat_plot) +
         # text = element_text(family = "STHeiti"),
         plot.title = element_text(hjust = 0.5),
         axis.text.x = element_text(angle = 0)) +
-  scale_color_manual(values = c('blue', '#fc8d62')) 
+  scale_color_manual(values = c('blue', '#fc8d62'))
 p_5
 
 ## Combine figures
@@ -463,7 +461,7 @@ fit_FSVD_clu_1$Intric_basis <- sapply(1:4, function(k)  fit_FSVD_clu_1$Intric_ba
 dat_plot <- data.frame(
   time = rep(seq(0, 66, length.out = 101), 4),
   value = c(fit_FSVD_clu_1$Intric_basis),
-  mark = c(rep(paste0("1st IBF"), 101), 
+  mark = c(rep(paste0("1st IBF"), 101),
            rep(paste0("2nd IBF"), 101),
            rep(paste0("3rd IBF"), 101),
            rep(paste0("4th IBF"), 101))
@@ -471,7 +469,7 @@ dat_plot <- data.frame(
 
 dat_plot$mark <- as.factor(dat_plot$mark)
 
-p_1 <- ggplot(dat_plot) + 
+p_1 <- ggplot(dat_plot) +
   geom_line(aes(x = time, y = value, group = mark, color = mark), size = 0.7) +
   labs(x = "Day since 20+ cases", y = "Value of functions",
        title = "(A) Cluster 1",
@@ -488,7 +486,7 @@ p_1 <- ggplot(dat_plot) +
         plot.title = element_text(hjust = 0.5),
         axis.text.x = element_text(angle = 0)) +
   # scale_linetype_manual(values = c(1, 2, 3, 4)) +
-  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3')) 
+  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3'))
 p_1
 
 ### IBFs for cluster 2
@@ -496,7 +494,7 @@ fit_FSVD_clu_2$Intric_basis <- sapply(1:4, function(k)  fit_FSVD_clu_2$Intric_ba
 dat_plot <- data.frame(
   time = rep(seq(0, 66, length.out = 101), 4),
   value = c(fit_FSVD_clu_2$Intric_basis),
-  mark = c(rep(paste0("1st IBF"), 101), 
+  mark = c(rep(paste0("1st IBF"), 101),
            rep(paste0("2nd IBF"), 101),
            rep(paste0("3rd IBF"), 101),
            rep(paste0("4th IBF"), 101))
@@ -504,7 +502,7 @@ dat_plot <- data.frame(
 
 dat_plot$mark <- as.factor(dat_plot$mark)
 
-p_2 <- ggplot(dat_plot) + 
+p_2 <- ggplot(dat_plot) +
   geom_line(aes(x = time, y = value, group = mark, color = mark), size = 0.7) +
   labs(x = "Day since 20+ cases", y = "Value of functions",
        title = "(B) Cluster 2",
@@ -521,7 +519,7 @@ p_2 <- ggplot(dat_plot) +
         plot.title = element_text(hjust = 0.5),
         axis.text.x = element_text(angle = 0)) +
   # scale_linetype_manual(values = c(1, 2, 3, 4)) +
-  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3')) 
+  scale_color_manual(values = c('red','#fc8d62','#8da0cb','#e78ac3'))
 p_2
 
 ## Combine figures
