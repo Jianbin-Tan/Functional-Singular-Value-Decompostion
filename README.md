@@ -30,6 +30,6 @@ The code in this repository demonstrates the application of our proposed FSVD me
 - Smoothing spline
 
 ### Reproducibility
-- **Simulation Results**: The results presented in Section 6 can be reproduced by running the script `Simulation_result.R`.
-- **COVID-19 Dynamic Data Analysis**: The analysis in Section 7 for the COVID-19 data can be performed using `Data_analysis_COVID19.R`.
-- **Longitudinal EHR Analysis**: The analysis in Section 7 for the EHR data can be conducted using `Data_analysis_EHR_whole.R` and `Data_analysis_EHR.R`.
+- **Simulation Results**: The results presented in Section 7 can be reproduced by running the script `Simulation_result.R`.
+- **COVID-19 Dynamic Data Analysis**: The analysis in Section 8 for the COVID-19 data can be performed using `Data_analysis_COVID19.R`.
+- **Longitudinal EHR Analysis**: The analysis in Section 8 for the EHR data can be conducted using `Data_analysis_EHR.R`.
