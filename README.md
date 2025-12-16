@@ -5,9 +5,13 @@ This repository provides the data and code associated with the paper "Functional
 ## 1. Data
 
 This repository contains both simulated and real datasets utilized in our study. All datasets necessary to replicate our findings are provided. Specifically: 
-- The dynamic COVID-19 dataset is publicly available at the [COVID-19 Data Repository by CSSE at Johns Hopkins University](https://github.com/CSSEGISandData/COVID-19). 
-- The longitudinal electronic health records are sourced from the [MIMIC-IV Database](https://physionet.org/content/mimiciv/3.0/).
+- The dynamic COVID-19 dataset was downloaded from the COVID-19 Data Repository by CSSE at Johns Hopkins University (\url{https://github.com/CSSEGISandData/COVID-19}). 
+  Specifically, we used the raw file(s): \texttt{time\_series\_covid19\_confirmed\_global.csv} (\url{https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv}), 
+  \texttt{UID\_ISO\_FIPS\_LookUp\_Table.csv} (\url{https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv}).
 
+- The longitudinal electronic health records were obtained from the MIMIC-IV Database on PhysioNet (\url{https://physionet.org/content/mimiciv/3.0/}). 
+  Specifically, we used the raw table(s)/file(s): \texttt{<TABLE-or-FILE1>}, \texttt{<TABLE-or-FILE2>}, \dots\ (version: \texttt{3.0}, access date: \texttt{<YYYY-MM-DD>}).
+  
 ### Data Dictionary
 The "Data" directory contains the raw data files, including:
 - COVID-19 dynamic trajectories
