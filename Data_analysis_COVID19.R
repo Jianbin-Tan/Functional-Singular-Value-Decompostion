@@ -37,7 +37,7 @@ Population <- sapply(1:n, function(i){
   Population_dat[which(Population_dat$Country_Region == region_name[i])[1],]$Population
 })
 
-## Data transformation
+## Preprocessing
 Ly <- list()
 Lt <- list()
 n <- nrow(dat)
