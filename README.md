@@ -8,8 +8,14 @@ This repository contains both real datasets utilized in our study. Specifically:
 - The dynamic COVID-19 dataset was downloaded from the COVID-19 Data Repository by CSSE at Johns Hopkins University (https://github.com/CSSEGISandData/COVID-19).
 Specifically, we used the raw files: [time_series_covid19_confirmed_global.csv](https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv) and [UID_ISO_FIPS_LookUp_Table.csv](https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv).
 
-- The longitudinal electronic health records were obtained from the [MIMIC-IV Database on PhysioNet](https://physionet.org/content/mimiciv/3.0/).
-Specifically, our analysis uses the file: `lab_drg_870_872_Nov_iv.csv`. After obtaining credentialed access and downloading these files, we extracted and preprocessed the relevant tables and saved the processed dataset as `dat_ehr.rda`.
+- The longitudinal electronic health records (EHR) were obtained from the [MIMIC-IV Database on PhysioNet](https://physionet.org/content/mimiciv/3.0/).
+Specifically, our analysis uses the file: `lab_drg_870_872_Nov_iv.csv`. After obtaining credentialed access and downloading these files, we extracted the EHR data from one patient saved as `dat_ehr.rda`.
+
+### Processing
+
+- **COVID-19 dataset:** We load the two raw files from the JHU CSSE repository, select a fixed set of countries/regions (one record per country/region), normalize cumulative confirmed counts by population (cases per million), and apply a log10 transformation after a minimal case threshold to reduce early-period uncertainty. We then create the analysis inputs as (i) the transformed observations and (ii) their corresponding time indices, with time rescaled to [0,1]. The preprocessing code is implemented in `Data_analysis_COVID19.rda`.
+
+- **EHR dataset (MIMIC-IV):** We load the extracted EHR files `lab_drg_870_872_Nov_iv.csv`. For each patient, we subset the records by `SUBJECT_ID` and split the data by clinical feature (`FEATURE_NAME`). Within each feature, we rescale `RECORD_MIN` to [0,1] over that patient’s time window, remove missing measurements, and snap times to a common grid. When multiple measurements fall on the same grid time, we aggregate them by taking the mean value. Finally, we retain only features with sufficient information (at least 5 observed non-zero values) for downstream analysis. The preprocessing code is implemented in `Data_analysis_EHR_whole`.
 
 ## 2. Code
 ### Overview
