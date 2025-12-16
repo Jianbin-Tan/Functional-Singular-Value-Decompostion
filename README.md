@@ -8,8 +8,8 @@ This repository contains both real datasets utilized in our study. Specifically:
 - The dynamic COVID-19 dataset was downloaded from the COVID-19 Data Repository by CSSE at Johns Hopkins University (https://github.com/CSSEGISandData/COVID-19).
 Specifically, we used the raw files: [time_series_covid19_confirmed_global.csv](https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv) and [UID_ISO_FIPS_LookUp_Table.csv](https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv).
 
-- The longitudinal electronic health records (EHR) were obtained from the [MIMIC-IV Database on PhysioNet](https://physionet.org/content/mimiciv/3.0/).
-Specifically, our analysis uses the file: `lab_drg_870_872_Nov_iv.csv`. After obtaining credentialed access and downloading these files, we extracted the EHR data from one patient saved as `dat_ehr.rda`.
+- The longitudinal electronic health records (EHR) were obtained from the [MIMIC-IV Database on PhysioNet](https://physionet.org/content/mimiciv/3.0/).  
+  Specifically, our analysis uses the extracted file `lab_drg_870_872_Nov_iv.csv`. After obtaining credentialed access and downloading the official MIMIC-IV release from PhysioNet, we extracted the EHR data for a single patient (for illustration purpose) and saved the dataset as `dat_ehr.rda`.
 
 ### Processing
 
