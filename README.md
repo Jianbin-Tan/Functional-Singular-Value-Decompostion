@@ -9,7 +9,7 @@ This repository contains both real datasets utilized in our study. Specifically:
 Specifically, we used the raw files: [time_series_covid19_confirmed_global.csv](https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv) and [UID_ISO_FIPS_LookUp_Table.csv](https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv).
 
 - The longitudinal electronic health records were obtained from the [MIMIC-IV Database on PhysioNet](https://physionet.org/content/mimiciv/3.0/).
-Specifically, our analysis uses the extracted files: `death_drg_870_872_Nov_iv.csv` and `lab_drg_870_872_Nov_iv.csv`. After obtaining credentialed access and downloading the files, we extracted and preprocessed the relevant tables and saved the processed dataset as `dat_ehr.rda`.
+Specifically, our analysis uses the files: `death_drg_870_872_Nov_iv.csv` and `lab_drg_870_872_Nov_iv.csv`. After obtaining credentialed access and downloading these files, we extracted and preprocessed the relevant tables and saved the processed dataset as `dat_ehr.rda`.
 
 ## 2. Code
 ### Overview
