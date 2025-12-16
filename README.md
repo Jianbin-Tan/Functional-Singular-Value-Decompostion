@@ -6,10 +6,10 @@ This repository provides the data and code associated with the paper "Functional
 
 This repository contains both simulated and real datasets utilized in our study. Specifically: 
 - The dynamic COVID-19 dataset was downloaded from the COVID-19 Data Repository by CSSE at Johns Hopkins University (https://github.com/CSSEGISandData/COVID-19).
-Specifically, we used the raw file(s): [time_series_covid19_confirmed_global.csv](https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv) and [UID_ISO_FIPS_LookUp_Table.csv](https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv).
+Specifically, we used the raw files: [time_series_covid19_confirmed_global.csv](https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv) and [UID_ISO_FIPS_LookUp_Table.csv](https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv).
 
 - The longitudinal electronic health records were obtained from the MIMIC-IV Database on PhysioNet (https://physionet.org/content/mimiciv/3.0/).
-Specifically, we used MIMIC-IV v3.0. After obtaining credentialed access and downloading the official MIMIC-IV release from PhysioNet, we extracted and preprocessed the relevant tables to create the analysis-ready files used in this project: death_drg_870_872_Nov_iv.csv and lab_drg_870_872_Nov_iv.csv.
+After obtaining credentialed access and downloading the official MIMIC-IV release from PhysioNet, we extracted and preprocessed the relevant tables to create the analysis-ready files used in this project: death_drg_870_872_Nov_iv.csv and lab_drg_870_872_Nov_iv.csv.
 
 ## 2. Code
 ### Overview
