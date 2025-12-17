@@ -49,7 +49,7 @@ The code in this repository demonstrates the application of our proposed FSVD me
 
 #### Data analysis
 - `Data_analysis_COVID19.R`: Performs the COVID-19 dynamic data analysis reported in Section 8.
-- `Data_analysis_EHR_whole.R`: Extended EHR pipeline used for additional analyses beyond the illustrative example (e.g., whole-cohort / additional experiments).
+- `Data_analysis_EHR_whole.R`: Performs the longitudinal EHR analysis reported in Section 8 for the whole-cohort.
 - `Data_analysis_EHR.R`: Performs the longitudinal EHR analysis reported in Section 8 (illustrative example based on one patient).
 
 #### Core functions
