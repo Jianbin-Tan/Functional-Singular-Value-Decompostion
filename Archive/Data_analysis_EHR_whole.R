@@ -8,8 +8,9 @@ source("Function.R")
 
 # Load data
 dat <- read.csv(file = "Data/lab_drg_870_872_Nov_iv.csv")
+dat_dea <- read.csv(file = "Data/death_drg_870_872_Nov_iv.csv")
 
-## Preprocessing and implementation functions
+## Data exploration
 subject_id <- unique(dat$SUBJECT_ID)
 feature_id <- unique(dat$FEATURE_NAME)
 time_grid <- seq(0, 1, length.out = 101)
