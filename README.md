@@ -1,6 +1,6 @@
 # Functional Singular Value Decomposition (FSVD)
 
-This repository provides the data and code associated with the paper "A singular value decomposition framework for learning with heterogeneous functional data" by Jianbin Tan, Pixu Shi, and Anru Zhang. The paper is available on [arXiv](https://arxiv.org/abs/2410.03619), and an accompanying R package, **FSVD**, can be found at [https://github.com/Tan-jianbin/FSVD](https://github.com/Tan-jianbin/FSVD).
+This repository provides the data and code associated with the paper "Functional-SVD for Heterogeneous Trajectories: Case Studies in Health" by Jianbin Tan, Pixu Shi, and Anru Zhang. The paper is available on [arXiv](https://arxiv.org/abs/2410.03619), and an accompanying R package, **FSVD**, can be found at [https://github.com/Tan-jianbin/FSVD](https://github.com/Tan-jianbin/FSVD).
 
 ## 1. Data
 
@@ -39,7 +39,7 @@ The code in this repository demonstrates the application of our proposed FSVD me
 - `Result/`: Saved intermediate and final result objects produced by the simulations.
 
 #### Simulation 
-- `Simulation_result.R`: Reproduces the simulation results reported in Section 7.
+- `Simulation_result.R`: Reproduces simulation results.
 - `Simulation_fun.R`: Simulation script for heterogeneous functional data settings.
 - `Simulation_fun_iid.R`: Simulation script for i.i.d. functional-data settings.
 - `Simulation_clu.R`: Simulation script for functional clustering settings.
@@ -47,8 +47,8 @@ The code in this repository demonstrates the application of our proposed FSVD me
 - `Simulation_fac.R`: Simulation script for factor-model settings.
 
 #### Data analysis
-- `Data_analysis_COVID19.R`: Performs the COVID-19 dynamic data analysis reported in Section 8.
-- `Data_analysis_EHR.R`: Performs the longitudinal EHR analysis reported in Section 8 for the whole-cohort.
+- `Data_analysis_COVID19.R`: Performs the COVID-19 dynamic data analysis reported in Section 5.
+- `Data_analysis_EHR.R`: Performs the longitudinal EHR analysis reported in Section 5 for the whole-cohort.
 
 #### Core functions
 - `Function.R`: Core functions used across the simulations and real-data analyses.
