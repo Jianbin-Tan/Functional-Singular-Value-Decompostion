@@ -1,6 +1,6 @@
 # Functional Singular Value Decomposition (FSVD)
 
-This repository provides the data and code associated with the paper "Functional-SVD for Heterogeneous Trajectories: Case Studies in Health" by Jianbin Tan, Pixu Shi, and Anru Zhang. The paper is available on [arXiv](https://arxiv.org/abs/2410.03619v5), and an accompanying R package, **FSVD**, can be found at [https://github.com/Tan-jianbin/FSVD](https://github.com/Tan-jianbin/FSVD).
+This repository provides the data and code associated with the paper "Functional-SVD for Heterogeneous Trajectories: Case Studies in Health" by Jianbin Tan, Pixu Shi, and Anru Zhang. The paper is available on [arXiv](https://arxiv.org/abs/2410.03619v5) and has been published in the [*Journal of the American Statistical Association*](https://www.tandfonline.com/doi/full/10.1080/01621459.2026.2625441). An accompanying R package, **FSVD**, can be found at [https://github.com/Tan-jianbin/FSVD](https://github.com/Tan-jianbin/FSVD).
 
 ## 1. Data
 
